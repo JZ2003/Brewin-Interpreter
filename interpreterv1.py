@@ -1,15 +1,16 @@
 from intbase import *
 from Bclass import *
-
+from Bconstant import Bconstant
 
 class Interpreter(InterpreterBase):
     def __init__(self, console_output=True, inp=None, trace_output=False):
         super().__init__(console_output, inp) # call InterpreterBase’s constructor
     
     def run(self,program):
-        class1 = Bclass(program, self)
-
-
+        # class1 = Bclass(program, self)
+        string = "\"\""
+        c = Bconstant(self,string)
+        print(f"string represents {c.value}, with type {c.type}")
 
 
 
@@ -56,14 +57,14 @@ def print_line_nums(parsed_program):
 
 
 def main():
-    program_source = ['(class main',
-    ' (method main ()',
-    ' (print "hello world!")',
-    ' ) # end of method',
-    ') # end of class']
+    # program_source = ['(class main',
+    # ' (method main ()',
+    # ' (print "hello world!")',
+    # ' ) # end of method',
+    # ') # end of class']
 
-    # file_path = "./codeExample2.brewin"
-    # program_source = read_file(file_path=file_path)
+    file_path = "./codeExample1.brewin"
+    program_source = read_file(file_path=file_path)
     # this is how you use our BParser class to parse a valid
     # Brewin program into python list format.
     result, parsed_program = BParser.parse(program_source)
@@ -71,7 +72,7 @@ def main():
         I = Interpreter()
         I.run(parsed_program[0])
         # print_line_nums(parsed_program[0])
-        # print(type(parsed_program))
+        # print(parsed_program)
     else:
         print('Parsing failed. There must have been a mismatched parenthesis.')
 
