@@ -1,23 +1,38 @@
 from intbase import *
 from Bclass import *
-
+from Bexpression import Bexp
+from Bconstant import Bconstant
 
 class Interpreter(InterpreterBase):
     def __init__(self, console_output=True, inp=None, trace_output=False):
         super().__init__(console_output, inp) # call InterpreterBase’s constructor
     
     def run(self,program):
-        class1 = Bclass(program,self)
-        classObject1 = class1.instantiate_object()
-        for f in classObject1.fields:
-            t, v = f.evaluate()
-            n = f.name()
-            print(f"{n}: type {t}, value: {v}")
+        Bclasses = []
+        Bobjects = []
+        # class1 = Bclass(program,self)
+        # classObject1 = class1.instantiate_object()
+        # for f in classObject1.fields:
+        #     t, v = f.evaluate()
+        #     n = f.name()
+        #     print(f"{n}: type {t}, value: {v}")
+        # print("----------------")
+        # for m in classObject1.methods:
+        #     n = m.name()
+        #     s,p = m.test()
+        #     print(f"{n}: parameters: {p}, statement: {s}")
         # string = "\"\""
         # c = Bconstant(self,string)
         # print(f"string represents {c.value}, with type {c.type}")
-
-
+        class1 = Bclass(program,self)
+        Object1 = class1.instantiate_object()
+        p1_val = Bconstant(self,"33345")
+        p2_val = Bconstant(self,"\"skrr\"")
+        p3_val = Bconstant(self,"false")
+        Parameters = {"p1": p1_val, "p2": p2_val, "p3": p3_val}
+        initial = "sbs"
+        exp = Bexp(self,Object1,Parameters=Parameters,initialList=initial)
+        print(f"This expression evaluates to {exp.evaluate()}, with type: {type(exp.evaluate())}")
 
 
 

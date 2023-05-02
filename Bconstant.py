@@ -28,4 +28,7 @@ class Bconstant:
             self.type = type("I'm a string")
             self.value = p[1:len(p)-1]
         else:
-            self.BASE.error(ErrorType.SYNTAX_ERROR,description="Unrecognizable constant")
+            raise SyntaxError
+    
+    def evaluate(self):
+        return self.value
