@@ -23,12 +23,14 @@ class Bexp:
         elif len(self.L) == 2:
             return self.eval2()
         elif len(self.L) == 3:
-            return self.eval3()
+            s1, e1, e2 = self.L
+            return self.eval3(s1,e1,e2)
         elif self.L[0] == INTBASE.CALL_DEF:
             return self.evalC()
         else:
             self.BASE.error(ErrorType.SYNTAX_ERROR,description="Wrong expression syntax")
     
+    #The base case in evaluate() where there's only a string to eval
     def eval1(self,s1):
         # Check if it's a constant
         try:
@@ -49,13 +51,38 @@ class Bexp:
                 if val != (None,None):
                     return val.evaluate()
                 else:
-                    self.BASE.error(ErrorType.NAME_ERROR,description="Can't find the variable")
+                    self.BASE.error(ErrorType.NAME_ERROR,description="Can't find the variable.")
 
     def eval2(self):
         pass
 
-    def eval3(self):
-        pass
+    def eval3(self,s1,e1,e2):
+        op = isArithmetic(s1)
+        e1Val = Bexp(self.BASE,self.OBJ,self.Parameters,e1).evaluate()
+        e2Val = Bexp(self.BASE,self.OBJ,self.Parameters,e2).evaluate()
+        try:
+            if op is not None:
+                return op(e1Val,e2Val)
+        except TypeError:
+            self.BASE.error(ErrorType.TYPE_ERROR,description="The operations are not compatible with the operands.")
+        raise NotImplementedError
+
+
 
     def evalC(self):
         pass
+
+
+def isArithmetic(s):
+    if s == "+":
+        return lambda x, y: x + y 
+    elif s == "-":
+        return lambda x, y: x - y
+    elif s == "*":
+        return lambda x, y: x * y
+    elif s == "/":
+        return lambda x, y: x // y
+    elif s == "%":
+        return lambda x, y: x % y      
+    else:
+        return None      
