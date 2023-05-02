@@ -7,16 +7,16 @@ class Bobject:
         self.classNAME = className
         self.fields = []
         self.methods = []
-        self.add_field(fields)
+        self.__add_field(fields)
     
-    def add_method(self):
+    def __add_method(self):
         pass
 
-    def add_field(self,fields):
-        for f in fields:
+    def __add_field(self,fields):
+        for f in fields: 
+            # f has the form: ["field", "<fieldName>", "<initialValue"]
             newFieldObject = Bfield(self.BASE,fieldName=f[1],initialValue=f[2])
             self.fields.append(newFieldObject)
-        
-
+    
     def run_method(self):
         pass

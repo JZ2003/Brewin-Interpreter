@@ -6,9 +6,9 @@ class Bconstant:
         self.BASE = BASE
         self.type = None
         self.value = None
-        self.infer_type_and_value(parseString)
+        self.__infer_type_and_value(parseString)
 
-    def infer_type_and_value(self,p):
+    def __infer_type_and_value(self,p):
         if p == INTBASE.NULL_DEF:
             self.type = type(None)
             self.value = None

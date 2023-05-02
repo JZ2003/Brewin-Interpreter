@@ -1,14 +1,20 @@
+from Bconstant import Bconstant
 
 class Bfield:
     def __init__(self,BASE,fieldName,initialValue):
         self.BASE = BASE
         self.fieldName = fieldName
-        self.initial_value = None
+        self.initialValue = None
+        self.__parse_initial_value(initialValue)
     
-    def parse_initial_value(self):
-        pass
+    def __parse_initial_value(self,initialValue):
+        self.initialValue = Bconstant(self.BASE,initialValue)
     
     def name(self):
-        pass
+        return self.fieldName
+
     def initial_value(self):
-        pass
+        return self.initialValue
+
+    def evaluate(self):
+        return self.initialValue.type, self.initialValue.value

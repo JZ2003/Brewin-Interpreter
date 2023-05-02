@@ -1,16 +1,21 @@
 from intbase import *
 from Bclass import *
-from Bconstant import Bconstant
+
 
 class Interpreter(InterpreterBase):
     def __init__(self, console_output=True, inp=None, trace_output=False):
         super().__init__(console_output, inp) # call InterpreterBase’s constructor
     
     def run(self,program):
-        # class1 = Bclass(program, self)
-        string = "\"\""
-        c = Bconstant(self,string)
-        print(f"string represents {c.value}, with type {c.type}")
+        class1 = Bclass(program,self)
+        classObject1 = class1.instantiate_object()
+        for f in classObject1.fields:
+            t, v = f.evaluate()
+            n = f.name()
+            print(f"{n}: type {t}, value: {v}")
+        # string = "\"\""
+        # c = Bconstant(self,string)
+        # print(f"string represents {c.value}, with type {c.type}")
 
 
 
