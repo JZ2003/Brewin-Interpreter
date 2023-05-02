@@ -21,10 +21,16 @@ class Bclass:
         self.methods = []
         self.fields = []
         self.__get_methods_and_fields(code[2:])
+        
+        # Check if there is at least one method in the Bclass definition
         if(len(self.methods) < 1):
-            #TODO: need to find out the right way to repop
             self.BASE.error(ErrorType.TYPE_ERROR,description="A class must have at least one method.")
+        
         #TODO: Check fields and methods don't have duplicate names
+        #DONE:
+        listOfFieldAndMethodNames = [f[1] for f in self.fields] + [m[1] for m in self.methods]
+        if len(listOfFieldAndMethodNames) != len(set(listOfFieldAndMethodNames)):
+            self.BASE.error(ErrorType.NAME_ERROR,description="Can't have duplicate field or method` names")
     
     def __get_methods_and_fields(self,code):
         for x in code:
