@@ -41,3 +41,6 @@ class Bobject:
     
     def run_method(self):
         pass
+
+    def evaluate(self):
+        return self
