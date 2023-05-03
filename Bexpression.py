@@ -62,11 +62,22 @@ class Bexp:
         e2Val = Bexp(self.BASE,self.OBJ,self.Parameters,e2).evaluate()
         try:
             if op is not None:
+                if type(e1Val) is not type(e2Val):
+                    self.BASE.error(ErrorType.TYPE_ERROR,description="The two operands are not compatible.")
                 return op(e1Val,e2Val)
         except TypeError:
             self.BASE.error(ErrorType.TYPE_ERROR,description="The operations are not compatible with the operands.")
-        raise NotImplementedError
-
+        
+        comp = isComparison(s1)
+        #NOTE: Caveat: string lexicographic order?
+        try:
+            if comp is not None:
+                if type(e1Val) is not type(e2Val):
+                    self.BASE.error(ErrorType.TYPE_ERROR,description="The two operands are not compatible.")
+                return comp(e1Val, e2Val)
+        except:
+            raise self.BASE.error(ErrorType.TYPE_ERROR,description="The operations are not compatible with the operands.")
+        
 
 
     def evalC(self):
@@ -86,3 +97,21 @@ def isArithmetic(s):
         return lambda x, y: x % y      
     else:
         return None      
+
+def isComparison(s):
+    if s == ">":
+        return lambda x, y: True if x > y else False
+    elif s == ">=":
+        return lambda x, y: True if x >= y else False
+    elif s == "<":
+        return lambda x, y: True if x < y else False
+    elif s == "<=":
+        return lambda x, y: True if x <= y else False
+    elif s == "==":
+        return lambda x, y: True if x == y else False
+    elif s == "!=":
+        return lambda x, y: True if x != y else False
+    else:
+        return None
+
+        
