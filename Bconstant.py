@@ -32,3 +32,14 @@ class Bconstant:
     
     def evaluate(self):
         return self.value
+    
+    # def __str__(self):
+    #     if self.type is bool and self.value == True:
+    #         return INTBASE.TRUE_DEF
+    #     elif self.type is bool and self.value == False:
+    #         return INTBASE.FALSE_DEF
+    #     elif self.type is int:
+    #         return self.value
+    #     elif isinstance(self.type,str):
+    #         return self.value
+

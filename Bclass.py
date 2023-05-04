@@ -43,6 +43,8 @@ class Bclass:
                 self.fields.append(x)
             else:
                 self.BASE.error(ErrorType.SYNTAX_ERROR,description="Invalid syntax for class definition.")
+    def get_name(self):
+        return self.name
 
     def instantiate_object(self):
         newClassObject = Bobject(self.BASE,self.name,self.fields,self.methods)

@@ -2,6 +2,7 @@ from intbase import *
 from Bclass import *
 from Bexpression import Bexp
 from Bconstant import Bconstant
+from Bstatement import Bstatement
 
 class Interpreter(InterpreterBase):
     def __init__(self, console_output=True, inp=None, trace_output=False):
@@ -33,10 +34,13 @@ class Interpreter(InterpreterBase):
         p3_val = Bconstant(self,"false")
         Parameters = {"p1": p1_val, "p2": p2_val, "p3": p3_val}
         # initial = ["!",["!",["!",["!", "ZJX"]]]]
-        initial = ["new", "person"]
+        initial = ['begin', ['begin', ['begin', ['print', 'p1']]]]
+        initial = ["if", "false", ["print","123"], ["print", "456"]]
         # initial = ["|", "p1", "p3"]
-        exp = Bexp(self,Object1,Parameters=Parameters,initialList=initial)
-        print(f"This expression evaluates to {exp.evaluate()}, with type: {type(exp.evaluate())}")
+        # exp = Bexp(self,Object1,Parameters=Parameters,initialList=initial)
+        # print(f"This expression evaluates to {exp.evaluate()}, with type: {type(exp.evaluate())}")
+        stm = Bstatement(self,Object1,initialList=initial)
+        stm.process(Parameters=Parameters)
 
 
 
@@ -86,6 +90,7 @@ def main():
     # ' (print "hello world!")',
     # ' ) # end of method',
     # ') # end of class']
+    # program_source = ""
 
     file_path = "./codeExample2.brewin"
     program_source = read_file(file_path=file_path)

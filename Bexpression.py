@@ -1,7 +1,7 @@
 from intbase import InterpreterBase as INTBASE
 from intbase import ErrorType
 from Bconstant import Bconstant
-from Bfield import Bfield
+# from Bfield import Bfield
 from Bobject import Bobject
 # from Bclass import Bclass
 class Bexp:
@@ -45,7 +45,7 @@ class Bexp:
             # Check parameters first
             if s1 in self.Parameters:
                 p = self.Parameters[s1]
-                return p.evaluate() # Even parameters need to be 
+                return p.evaluate() # Even parameters need to be evaluated
             # Then check fields
             else:
                 fields = self.OBJ.fields
