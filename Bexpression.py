@@ -3,6 +3,7 @@ from intbase import ErrorType
 from Bconstant import Bconstant
 from Bfield import Bfield
 from Bobject import Bobject
+# from Bclass import Bclass
 class Bexp:
     def __init__(self,BASE,OBJ,Parameters,initialList):
         """
@@ -22,7 +23,8 @@ class Bexp:
             s1 = self.L
             return self.eval1(s1)
         elif len(self.L) == 2:
-            return self.eval2()
+            s1,e1 = self.L
+            return self.eval2(s1,e1)
         elif len(self.L) == 3:
             s1, e1, e2 = self.L
             return self.eval3(s1,e1,e2)
@@ -54,8 +56,22 @@ class Bexp:
                 else:
                     self.BASE.error(ErrorType.NAME_ERROR,description="Can't find the variable.")
 
-    def eval2(self):
-        pass
+    def eval2(self,s1,e1):
+        if s1 == "!":
+            e1Val = Bexp(self.BASE,self.OBJ,self.Parameters,e1).evaluate()
+            if isinstance(e1Val,bool):
+                return not e1Val
+            else:
+                self.BASE.error(ErrorType.TYPE_ERROR,description="The operations are not compatible with the operands.")
+        elif s1 == INTBASE.NEW_DEF:
+            BclassDefs = self.BASE.BclassList
+            for c in BclassDefs:
+                print(type(c))
+                if c.get_name() == e1: #NOTE: extremely wirld bug here: changing get_name() to name() won't work
+                    return c.instantiate_object()
+            self.BASE.error(ErrorType.NAME_ERROR,description="Can't find the class definition.")
+        else:
+            self.BASE.error(ErrorType.SYNTAX_ERROR,description="Wrong unary expression")
 
     def eval3(self,s1,e1,e2):
         #CASE1: integer arithmetic or string concatenation
@@ -81,7 +97,7 @@ class Bexp:
         except:
             self.BASE.error(ErrorType.TYPE_ERROR,description="The operations are not compatible with the operands.")
         
-        #CASE3: == and !=, integer, string, boolean, or null comparison
+        #CASE3: == and !=, integer, string, boolean, or null comparison 
         eqneq = isEqNotEq(s1)
         if eqneq is not None:
             if isinstance(e1Val,int) and isinstance(e2Val,int):
@@ -90,9 +106,9 @@ class Bexp:
                  return eqneq(e1Val,e2Val)
             elif isinstance(e1Val,str) and isinstance(e2Val,str):
                 return eqneq(e1Val,e2Val)
-            #DEAL WITH NULL!
+            #DEAL WITH NULL! (VERY FLAKEY!)
             elif e1Val == None and e2Val == None:
-                return eqneq(e1Val,e2Val)
+                return eqneq(e1Val,e2Val) # True
             elif e1Val == None:
                 if not isinstance(e2Val,Bobject):
                     self.BASE.error(ErrorType.TYPE_ERROR,description="The two operands are not compatible.")
@@ -114,7 +130,6 @@ class Bexp:
             else:
                 self.BASE.error(ErrorType.TYPE_ERROR,description="The operations are not compatible with the operands.")
 
-        #TODO: null type comparison
 
 
 

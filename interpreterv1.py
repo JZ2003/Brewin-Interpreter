@@ -6,9 +6,9 @@ from Bconstant import Bconstant
 class Interpreter(InterpreterBase):
     def __init__(self, console_output=True, inp=None, trace_output=False):
         super().__init__(console_output, inp) # call InterpreterBase’s constructor
+        self.BclassList = []
     
     def run(self,program):
-        Bclasses = []
         Bobjects = []
         # class1 = Bclass(program,self)
         # classObject1 = class1.instantiate_object()
@@ -24,13 +24,17 @@ class Interpreter(InterpreterBase):
         # string = "\"\""
         # c = Bconstant(self,string)
         # print(f"string represents {c.value}, with type {c.type}")
-        class1 = Bclass(program,self)
+        for c in program:
+            self.BclassList.append(Bclass(c,self))
+        class1 = Bclass(program[0],self)
         Object1 = class1.instantiate_object()
         p1_val = Bconstant(self,"33345")
         p2_val = Bconstant(self,"\"skrr\"")
         p3_val = Bconstant(self,"false")
         Parameters = {"p1": p1_val, "p2": p2_val, "p3": p3_val}
-        initial = "sbs"
+        # initial = ["!",["!",["!",["!", "ZJX"]]]]
+        initial = ["new", "person"]
+        # initial = ["|", "p1", "p3"]
         exp = Bexp(self,Object1,Parameters=Parameters,initialList=initial)
         print(f"This expression evaluates to {exp.evaluate()}, with type: {type(exp.evaluate())}")
 
@@ -83,14 +87,14 @@ def main():
     # ' ) # end of method',
     # ') # end of class']
 
-    file_path = "./codeExample1.brewin"
+    file_path = "./codeExample2.brewin"
     program_source = read_file(file_path=file_path)
     # this is how you use our BParser class to parse a valid
     # Brewin program into python list format.
     result, parsed_program = BParser.parse(program_source)
     if result == True:    
         I = Interpreter()
-        I.run(parsed_program[0])
+        I.run(parsed_program)
         # print_line_nums(parsed_program[0])
         # print(parsed_program)
     else:
