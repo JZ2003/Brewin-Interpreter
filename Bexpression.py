@@ -66,7 +66,7 @@ class Bexp:
         elif s1 == INTBASE.NEW_DEF:
             BclassDefs = self.BASE.BclassList
             for c in BclassDefs:
-                print(type(c))
+                # print(type(c))
                 if c.get_name() == e1: #NOTE: extremely wirld bug here: changing get_name() to name() won't work
                     return c.instantiate_object()
             self.BASE.error(ErrorType.NAME_ERROR,description="Can't find the class definition.")

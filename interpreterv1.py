@@ -32,16 +32,25 @@ class Interpreter(InterpreterBase):
         p1_val = Bconstant(self,"33345")
         p2_val = Bconstant(self,"\"skrr\"")
         p3_val = Bconstant(self,"false")
-        Parameters = {"p1": p1_val, "p2": p2_val, "p3": p3_val}
+        result_val = Bconstant(self, "1")
+        Parameters = {"p1": p1_val, "p2": p2_val, "p3": p3_val, "result": result_val}
         # initial = ["!",["!",["!",["!", "ZJX"]]]]
-        initial = ['begin', ['begin', ['begin', ['print', 'p1']]]]
-        initial = ["if", "false", ["print","123"], ["print", "456"]]
+        # initial = ['begin', ['begin', ['begin', ['print', 'p1']]]]
+        # initial = ["if", "false", ["print","123"], ["print", "456"]]
+        # initial = ["set", "p3", ["new", "person"]]
         # initial = ["|", "p1", "p3"]
         # exp = Bexp(self,Object1,Parameters=Parameters,initialList=initial)
         # print(f"This expression evaluates to {exp.evaluate()}, with type: {type(exp.evaluate())}")
+        initial = ['while', ['>', 'n', '0'], ['begin', ['set', 'result', ['*', 'n', 'result']], ['set', 'n', ['-', 'n', '1']]]]
+        # initial = ['while', ['>', 'nn', '0'], ['begin', ['print', 'nn'], ['set', 'nn', ['-', 'nn', '1']]]]
+        # initial = ['while', ['>', 'nn', '0'], ['begin', ['if', ['>', 'nn', '-1000'], ['print', 'nn']], ['set', 'nn', ['-', 'nn', '1']]]]
         stm = Bstatement(self,Object1,initialList=initial)
         stm.process(Parameters=Parameters)
-
+        # print(Parameters["result"])
+        print(Parameters["result"].evaluate())
+        print("hello")
+        # print(Parameters["p3"].evaluate())
+        # print([(o.evaluate(), o.name()) for o in Object1.fields])
 
 
 

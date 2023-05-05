@@ -10,6 +10,12 @@ class Bfield:
     def __parse_initial_value(self,initialValue):
         self.value = Bconstant(self.BASE,initialValue)
     
+    def change_value(self,newValue):
+        try:
+            self.value = Bconstant(self.BASE,newValue)
+        except:
+            self.value = newValue
+
     def name(self):
         return self.fieldName
 
@@ -22,4 +28,4 @@ class Bfield:
         if isinstance(self.value, Bconstant):
             return self.value.value # temporary
         else:
-            raise NotImplementedError # Need to deal with situations when fields are class objects
+            return self.value # Need to deal with situations when fields are class objects

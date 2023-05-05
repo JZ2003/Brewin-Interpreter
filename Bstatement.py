@@ -3,6 +3,7 @@ from intbase import ErrorType
 from Bexpression import Bexp
 # from Bconstant import Bconstant
 from Bobject import Bobject
+from Bconstant import Bconstant
 class Bstatement:
     def __init__(self,BASE,OBJ,initialList):
         self.BASE = BASE
@@ -44,6 +45,7 @@ class Bstatement:
                 while condition:
                     newStatement = Bstatement(self.BASE,self.OBJ,self.L[2])
                     newStatement.process(Parameters)
+                    condition = Bexp(self.BASE,self.OBJ,Parameters,self.L[1]).evaluate()
             else:
                 self.BASE.error(ErrorType.TYPE_ERROR,description="Use a non-boolean type as the while condition")
         #IF:
@@ -73,9 +75,42 @@ class Bstatement:
                     self.BASE.error(ErrorType.TYPE_ERROR,description="Use a non-boolean type as the if condition")
             else:
                  self.BASE.error(ErrorType.SYNTAX_ERROR,description="Wrong if-statement format")
-            
+        
+        #SET:
+        elif self.L[0] == INTBASE.SET_DEF:
+            if len(self.L) != 3:
+                self.BASE.error(ErrorType.SYNTAX_ERROR,description="Wrong set-statement format")
+            exp = self.L[2]
+            expVal = Bexp(self.BASE,self.OBJ,Parameters,initialList=exp).evaluate() # The value to assign
+            toChange = self.L[1]
+            fields = self.OBJ.fields
+            theField = next((f for f in fields if f.name() == toChange), (None,None))
+            # If it is a parameter
+            if toChange in Parameters:
+                if isinstance(expVal, Bobject): # object type
+                    Parameters[toChange] = expVal
+                else: # primitive type
+                    const = Bconstant(self.BASE,stringify(expVal))
+                    Parameters[toChange] = const
+            # If it is a field
+            elif theField != (None,None):
+                if isinstance(expVal, Bobject): # object type
+                    theField.change_value(expVal)
+                else: # primitive type
+                    theField.change_value(stringify(expVal))
+            else:
+                self.BASE.error(ErrorType.NAME_ERROR,description="Can't find the parameter or field to set.")
         else:
             raise NotImplementedError
 
         
 
+def stringify(val):
+    if val is None:
+        return "null"
+    elif isinstance(val, bool):
+        return str(val).lower()
+    elif isinstance(val, str):
+        return '"' + val + '"'
+    else: #int case
+        return str(val)
