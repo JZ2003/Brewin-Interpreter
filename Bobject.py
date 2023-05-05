@@ -1,7 +1,9 @@
-from intbase import *
+# from intbase import *``
 from Bfield import Bfield
 from Bmethod import Bmethod
-
+from Bconstant import Bconstant
+# from Bexpression import Bexp
+from intbase import ErrorType
 class Bobject:
     def __init__(self,BASE,className,fields,methods):
         self.BASE = BASE
@@ -39,8 +41,49 @@ class Bobject:
             newFieldObject = Bfield(self.BASE,fieldName=f[1],initialValue=f[2])
             self.fields.append(newFieldObject)
     
-    def run_method(self):
-        pass
-
+    def run_method(self, method_name, param_list):
+        """
+        method_name: (str) the name of the method to be called
+        param_list: (list) need to be converted to a dict before use (from CALL exp)
+                    It could be objects or python primitives
+        """
+        # Find if such method exists
+        theMethod = next((m for m in self.methods if m.name() == method_name), (None,None))
+        if theMethod == (None,None):
+            self.BASE.error(ErrorType.NAME_ERROR,description="Calling an undefined method.")
+        method_param = theMethod.get_parameters()
+        # Check if the # of parameters is correct
+        if len(param_list) != len(method_param):
+            self.BASE.error(ErrorType.TYPE_ERROR,description="Calling a method with wrong number of parameters.")
+        # param_evaluated = []
+        # for p in param_list:
+        #     if isinstance(p,list):
+        #         exp = Bexp(self.BASE,self,)
+        param_dict = {}
+        for p, mp in zip(param_list, method_param):
+            try:  
+                const = Bconstant(self.BASE,stringify(p))
+                param_dict[mp] = const
+            except:
+                if isinstance(p,Bobject):
+                    param_dict[mp] = p
+                else:
+                    self.BASE.error(ErrorType.SYNTAX_ERROR,description="Passing in wrong format of parameters.")
+        
+        theMethod.execute_statement(param_dict)
+    
     def evaluate(self):
         return self
+
+# def isObject(thing):
+#     return isinstance(thing,Bobject)
+
+def stringify(val):
+    if val is None:
+        return "null"
+    elif isinstance(val, bool):
+        return str(val).lower()
+    elif isinstance(val, str):
+        return '"' + val + '"'
+    else: #int case
+        return str(val)

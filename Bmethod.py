@@ -1,4 +1,8 @@
-
+from intbase import InterpreterBase as INTBASE
+from intbase import ErrorType
+# from Bconstant import Bconstant
+# from Bexpression import Bexp
+from Bstatement import Bstatement
 class Bmethod:
     def __init__(self,BASE,OBJ,initialList):
         self.BASE = BASE
@@ -11,15 +15,30 @@ class Bmethod:
     def name(self):
         return self.methodName
     
+    def get_parameters(self):
+        return self.parameters
+
+    def get_statement(self):
+        return self.statement
+    
     def __parse_name_and_statement(self,l):
         pass
         self.methodName = l[1]
         self.parameters = l[2]
         self.statement = l[3] #TODO: instantiate a real statement
 
-    def execute_statement(self):
+    def execute_statement(self,Parameters):
         # evaluate the statement with parameters and OBJ fields
-        pass
+        """
+        Parameters: (dict) get parameters from the object call_method function
+        """
+
+        # if len(self.parameters) != len(Parameters):
+        #     self.BASE.error(ErrorType.TYPE_ERROR,description="Wrong number of parameters")
+        # Prmt_evaluated = [Bexp(self.BASE) for p in Parameters]
+
+        stm = Bstatement(self.BASE,self.OBJ,self.statement)
+        stm.process(Parameters=Parameters)
 
     def test(self):
         return self.statement, self.parameters

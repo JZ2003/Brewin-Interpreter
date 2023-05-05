@@ -28,12 +28,14 @@ class Interpreter(InterpreterBase):
         for c in program:
             self.BclassList.append(Bclass(c,self))
         class1 = Bclass(program[0],self)
-        Object1 = class1.instantiate_object()
-        p1_val = Bconstant(self,"33345")
-        p2_val = Bconstant(self,"\"skrr\"")
-        p3_val = Bconstant(self,"false")
-        result_val = Bconstant(self, "1")
-        Parameters = {"p1": p1_val, "p2": p2_val, "p3": p3_val, "result": result_val}
+        # Object1 = class1.instantiate_object()
+        mainObj = class1.instantiate_object()
+        mainObj.run_method("main",[])
+        # p1_val = Bconstant(self,"33345")
+        # p2_val = Bconstant(self,"\"skrr\"")
+        # p3_val = Bconstant(self,"false")
+        # result_val = Bconstant(self, "1")
+        # Parameters = {"p1": p1_val, "p2": p2_val, "p3": p3_val, "result": result_val}
         # initial = ["!",["!",["!",["!", "ZJX"]]]]
         # initial = ['begin', ['begin', ['begin', ['print', 'p1']]]]
         # initial = ["if", "false", ["print","123"], ["print", "456"]]
@@ -44,10 +46,10 @@ class Interpreter(InterpreterBase):
         initial = ['while', ['>', 'n', '0'], ['begin', ['set', 'result', ['*', 'n', 'result']], ['set', 'n', ['-', 'n', '1']]]]
         # initial = ['while', ['>', 'nn', '0'], ['begin', ['print', 'nn'], ['set', 'nn', ['-', 'nn', '1']]]]
         # initial = ['while', ['>', 'nn', '0'], ['begin', ['if', ['>', 'nn', '-1000'], ['print', 'nn']], ['set', 'nn', ['-', 'nn', '1']]]]
-        stm = Bstatement(self,Object1,initialList=initial)
-        stm.process(Parameters=Parameters)
+        # stm = Bstatement(self,Object1,initialList=initial)
+        # stm.process(Parameters=Parameters)
         # print(Parameters["result"])
-        print(Parameters["result"].evaluate())
+        # print(Parameters["result"].evaluate())
         print("hello")
         # print(Parameters["p3"].evaluate())
         # print([(o.evaluate(), o.name()) for o in Object1.fields])
@@ -101,7 +103,7 @@ def main():
     # ') # end of class']
     # program_source = ""
 
-    file_path = "./codeExample2.brewin"
+    file_path = "./codeExample3.brewin"
     program_source = read_file(file_path=file_path)
     # this is how you use our BParser class to parse a valid
     # Brewin program into python list format.

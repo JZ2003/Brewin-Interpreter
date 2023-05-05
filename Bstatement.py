@@ -2,13 +2,22 @@ from intbase import InterpreterBase as INTBASE
 from intbase import ErrorType
 from Bexpression import Bexp
 # from Bconstant import Bconstant
-from Bobject import Bobject
+# from Bobject import isObject
 from Bconstant import Bconstant
+
+
 class Bstatement:
     def __init__(self,BASE,OBJ,initialList):
         self.BASE = BASE
         self.OBJ = OBJ
         self.L = initialList
+
+    def isObject(self,thing):
+        try:
+            const = Bconstant(self.BASE, stringify(thing))
+            return False
+        except:
+            return True
 
     def process(self,Parameters):
         """
@@ -24,7 +33,7 @@ class Bstatement:
         elif self.L[0] == INTBASE.PRINT_DEF:
             for e in self.L[1:]:
                 toPrint = Bexp(self.BASE,self.OBJ,Parameters,e).evaluate()
-                if isinstance(toPrint,Bobject):
+                if self.isObject(toPrint):
                     self.BASE.error(ErrorType.TYPE_ERROR,description="Can't print an object")
                 elif toPrint is None:
                     self.BASE.error(ErrorType.TYPE_ERROR,description="Can't print a null")
@@ -87,14 +96,14 @@ class Bstatement:
             theField = next((f for f in fields if f.name() == toChange), (None,None))
             # If it is a parameter
             if toChange in Parameters:
-                if isinstance(expVal, Bobject): # object type
+                if self.isObject(expVal): # object type
                     Parameters[toChange] = expVal
                 else: # primitive type
                     const = Bconstant(self.BASE,stringify(expVal))
                     Parameters[toChange] = const
             # If it is a field
             elif theField != (None,None):
-                if isinstance(expVal, Bobject): # object type
+                if self.isObject(expVal): # object type
                     theField.change_value(expVal)
                 else: # primitive type
                     theField.change_value(stringify(expVal))

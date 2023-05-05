@@ -2,7 +2,7 @@ from intbase import InterpreterBase as INTBASE
 from intbase import ErrorType
 from Bconstant import Bconstant
 # from Bfield import Bfield
-from Bobject import Bobject
+# from Bobject import Bobject
 # from Bclass import Bclass
 class Bexp:
     def __init__(self,BASE,OBJ,Parameters,initialList):
@@ -17,6 +17,13 @@ class Bexp:
         self.Parameters = Parameters
         self.L = initialList # Might be a list or a single string
         pass
+
+    def isconst(self,thing):
+        try:
+            const = Bconstant(self.BASE,stringify(thing))
+            return True
+        except:
+            return False
 
     def evaluate(self):
         if isinstance(self.L, str): # single string (constant/variable)
@@ -106,19 +113,27 @@ class Bexp:
                  return eqneq(e1Val,e2Val)
             elif isinstance(e1Val,str) and isinstance(e2Val,str):
                 return eqneq(e1Val,e2Val)
+
             #DEAL WITH NULL! (VERY FLAKEY!)
-            elif e1Val == None and e2Val == None:
+            elif e1Val is None:
+                if self.isconst(e2Val):
+                    self.BASE.error(ErrorType.TYPE_ERROR,description="Can't compare null with primitive types")
                 return eqneq(e1Val,e2Val) # True
-            elif e1Val == None:
-                if not isinstance(e2Val,Bobject):
-                    self.BASE.error(ErrorType.TYPE_ERROR,description="The two operands are not compatible.")
-                else:
-                    return eqneq(e1Val,e2Val)
-            elif e2Val == None:
-                if not isinstance(e1Val,Bobject):
-                    self.BASE.error(ErrorType.TYPE_ERROR,description="The two operands are not compatible.")
-                else:
-                    return eqneq(e1Val,e2Val)            
+            elif e2Val is None:
+                if self.isconst(e1Val):
+                    self.BASE.error(ErrorType.TYPE_ERROR,description="Can't compare null with primitive types")
+                return eqneq(e1Val,e2Val) # True
+                
+            # elif e1Val == None:
+            #     if not isinstance(e2Val,Bobject):
+            #         self.BASE.error(ErrorType.TYPE_ERROR,description="The two operands are not compatible.")
+            #     else:
+            #         return eqneq(e1Val,e2Val)
+            # elif e2Val == None:
+            #     if not isinstance(e1Val,Bobject):
+            #         self.BASE.error(ErrorType.TYPE_ERROR,description="The two operands are not compatible.")
+            #     else:
+            #         return eqneq(e1Val,e2Val)            
             else:
                 self.BASE.error(ErrorType.TYPE_ERROR,description="The operations are not compatible with the operands.")
 
@@ -178,3 +193,13 @@ def isAndOr(s):
         return lambda x, y: x | y
     else:
         return None
+
+def stringify(val):
+    if val is None:
+        return "null"
+    elif isinstance(val, bool):
+        return str(val).lower()
+    elif isinstance(val, str):
+        return '"' + val + '"'
+    else: #int case
+        return str(val)
