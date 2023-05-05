@@ -11,10 +11,7 @@ class Bfield:
         self.value = Bconstant(self.BASE,initialValue)
     
     def change_value(self,newValue):
-        try:
-            self.value = Bconstant(self.BASE,newValue)
-        except:
-            self.value = newValue
+        self.value = newValue
 
     def name(self):
         return self.fieldName

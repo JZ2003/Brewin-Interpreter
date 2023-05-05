@@ -106,9 +106,34 @@ class Bstatement:
                 if self.isObject(expVal): # object type
                     theField.change_value(expVal)
                 else: # primitive type
-                    theField.change_value(stringify(expVal))
+                    const = Bconstant(self.BASE,stringify(expVal))
+                    theField.change_value(const)
             else:
                 self.BASE.error(ErrorType.NAME_ERROR,description="Can't find the parameter or field to set.")
+        
+        #INPUTI & INPUTS
+        elif self.L[0] == INTBASE.INPUT_INT_DEF or self.L[0] == INTBASE.INPUT_STRING_DEF:
+            if len(self.L) != 2:
+                self.BASE.error(ErrorType.SYNTAX_ERROR,description="Wrong input-statement format")
+            input = self.BASE.get_input() # get input with python string format
+            if input.isdigit(): #inputi case
+                inputVal = Bconstant(self.BASE,input)
+            else: #inputs case
+                inputVal = Bconstant(self.BASE, '"' + input + '"') #NOTE: to denote a Bstring, 
+                                                                        #we need another pair of quotes
+            toChange = self.L[1] 
+            fields = self.OBJ.fields
+            theField = next((f for f in fields if f.name() == toChange), (None,None))
+            # If it is a parameter
+            if toChange in Parameters:
+                    Parameters[toChange] = inputVal
+            # If it is a field
+            elif theField != (None,None):
+                    theField.change_value(inputVal)
+            else:
+                self.BASE.error(ErrorType.NAME_ERROR,description="Can't find the parameter or field to set.")
+
+
         else:
             raise NotImplementedError
 
