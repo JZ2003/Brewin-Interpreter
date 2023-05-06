@@ -10,8 +10,8 @@ class Interpreter(InterpreterBase):
         self.BclassList = []
     
     def run(self,program):
-        # result, parsed_program = BParser.parse(program)
-        parsed_program = program
+        result, parsed_program = BParser.parse(program)
+        # parsed_program = program
         for c in parsed_program:
             self.BclassList.append(Bclass(c,self))
         # Check dup in class definitions
