@@ -151,16 +151,23 @@ class Bstatement:
             if len(self.L) < 2:
                 self.BASE.error(ErrorType.SYNTAX_ERROR,description="Wrong call-statement format")
             objName = self.L[1]
-            fields = self.OBJ.fields
-            theField = next((f for f in fields if f.name() == objName), (None,None))
-            if objName in Parameters:
-                callObj = Parameters[objName]
-            elif theField != (None,None):
-                callObj = theField.evaluate()
-            elif objName == "me":
-                callObj = self.OBJ
+
+            if isinstance(objName,list):
+                if objName[0] == INTBASE.CALL_DEF:
+                    callObj = Bstatement(self.BASE,self.OBJ,objName).process(Parameters)
+                elif objName[0] == INTBASE.NEW_DEF:
+                    callObj = Bexp(self.BASE,self.OBJ,Parameters,objName).evaluate()
             else:
-                self.BASE.error(ErrorType.NAME_ERROR,description="Can't find the parameter or field to call.") # Not so sure
+                fields = self.OBJ.fields
+                theField = next((f for f in fields if f.name() == objName), (None,None))
+                if objName in Parameters:
+                    callObj = Parameters[objName]
+                elif theField != (None,None):
+                    callObj = theField.evaluate()
+                elif objName == "me":
+                    callObj = self.OBJ
+                else:
+                    self.BASE.error(ErrorType.NAME_ERROR,description="Can't find the parameter or field to call.") # Not so sure
             # Check if it's an object and if it's not null
             if not self.isObject(callObj):
                 self.BASE.error(ErrorType.FAULT_ERROR,description="Using non-object or null to make function call")
@@ -169,7 +176,8 @@ class Bstatement:
                 exp = Bexp(self.BASE,self.OBJ,Parameters=Parameters,initialList=e).evaluate()
                 param_list.append(exp)
             methodName = self.L[2]
-            callObj.run_method(methodName,param_list)
+            result = callObj.run_method(methodName,param_list)
+            return result
         #RETURN
         elif self.L[0] == INTBASE.RETURN_DEF:
             if len(self.L) == 1:
