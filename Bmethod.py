@@ -38,7 +38,8 @@ class Bmethod:
         # Prmt_evaluated = [Bexp(self.BASE) for p in Parameters]
 
         stm = Bstatement(self.BASE,self.OBJ,self.statement)
-        stm.process(Parameters=Parameters)
+        result = stm.process(Parameters=Parameters)
+        return result
 
     def test(self):
         return self.statement, self.parameters

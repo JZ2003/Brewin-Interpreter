@@ -7,6 +7,7 @@ from Bconstant import Bconstant
 
 
 class Bstatement:
+    RETURNED = "finish"
     def __init__(self,BASE,OBJ,initialList):
         self.BASE = BASE
         self.OBJ = OBJ
@@ -27,7 +28,9 @@ class Bstatement:
         if self.L[0] == INTBASE.BEGIN_DEF:
             for s in self.L[1:]:
                 newStatement = Bstatement(self.BASE,self.OBJ,s)
-                newStatement.process(Parameters)
+                result = newStatement.process(Parameters)
+                if result is not None:
+                    return result
         
         # PRINT:
         elif self.L[0] == INTBASE.PRINT_DEF:
@@ -55,7 +58,9 @@ class Bstatement:
             if isinstance(condition,bool):
                 while condition:
                     newStatement = Bstatement(self.BASE,self.OBJ,self.L[2])
-                    newStatement.process(Parameters)
+                    result = newStatement.process(Parameters)
+                    if result is not None:
+                        return result
                     condition = Bexp(self.BASE,self.OBJ,Parameters,self.L[1]).evaluate()
             else:
                 self.BASE.error(ErrorType.TYPE_ERROR,description="Use a non-boolean type as the while condition")
@@ -67,7 +72,9 @@ class Bstatement:
                 if isinstance(condition,bool):
                     if condition:
                         newStatement = Bstatement(self.BASE,self.OBJ,self.L[2])
-                        newStatement.process(Parameters)
+                        result = newStatement.process(Parameters)
+                        if result is not None:
+                            return result
                     else:
                         return # The condition if false. Do nothing
                 else:
@@ -78,10 +85,14 @@ class Bstatement:
                 if isinstance(condition,bool):
                     if condition:
                         newStatement = Bstatement(self.BASE,self.OBJ,self.L[2])
-                        newStatement.process(Parameters)
+                        result = newStatement.process(Parameters)
+                        if result is not None:
+                            return result
                     else:
                         newStatement = Bstatement(self.BASE,self.OBJ,self.L[3])
-                        newStatement.process(Parameters)                
+                        result = newStatement.process(Parameters)                
+                        if result is not None:
+                            return result
                 else:
                     self.BASE.error(ErrorType.TYPE_ERROR,description="Use a non-boolean type as the if condition")
             else:
@@ -159,7 +170,21 @@ class Bstatement:
                 param_list.append(exp)
             methodName = self.L[2]
             callObj.run_method(methodName,param_list)
-
+        #RETURN
+        elif self.L[0] == INTBASE.RETURN_DEF:
+            if len(self.L) == 1:
+                return Bstatement.RETURNED #NOT NONE
+            elif len(self.L) == 2:
+                exp = self.L[1]
+                expVal = Bexp(self.BASE,self.OBJ,Parameters,initialList=exp).evaluate() # The value to return 
+                if self.isObject(expVal):
+                    return expVal # return object
+                else:
+                    # const = Bconstant(self.BASE,stringify(expVal)) # Return Bconstant 
+                    return stringify(expVal)
+                    # return const
+            else:
+                self.BASE.error(ErrorType.SYNTAX_ERROR,description="Wrong return-statement format")
 
         else:
             raise NotImplementedError

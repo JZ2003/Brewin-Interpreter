@@ -27,7 +27,7 @@ class Interpreter(InterpreterBase):
         # print(f"string represents {c.value}, with type {c.type}")
         for c in program:
             self.BclassList.append(Bclass(c,self))
-        class1 = Bclass(program[0],self)
+        class1 = Bclass(program[1],self)
         # Object1 = class1.instantiate_object()
         mainObj = class1.instantiate_object()
         mainObj.run_method("main",[])
@@ -103,7 +103,7 @@ def main():
     # ') # end of class']
     # program_source = ""
 
-    file_path = "./codeExample3.brewin"
+    file_path = "./codeExample2.brewin"
     program_source = read_file(file_path=file_path)
     # this is how you use our BParser class to parse a valid
     # Brewin program into python list format.

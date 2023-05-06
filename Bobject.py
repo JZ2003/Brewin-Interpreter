@@ -70,7 +70,8 @@ class Bobject:
                 else:
                     self.BASE.error(ErrorType.SYNTAX_ERROR,description="Passing in wrong format of parameters.")
         
-        theMethod.execute_statement(param_dict)
+        result = theMethod.execute_statement(param_dict)
+        return result
     
     def evaluate(self):
         return self

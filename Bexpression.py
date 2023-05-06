@@ -5,6 +5,7 @@ from Bconstant import Bconstant
 # from Bobject import Bobject
 # from Bclass import Bclass
 class Bexp:
+    RETURNED = "finish"
     def __init__(self,BASE,OBJ,Parameters,initialList):
         """
         BASE: the interpreter pointer
@@ -24,6 +25,13 @@ class Bexp:
             return True
         except:
             return False
+
+    def isObject(self,thing):
+        try:
+            const = Bconstant(self.BASE, stringify(thing))
+            return False
+        except:
+            return True
 
     def evaluate(self):
         if isinstance(self.L, str): # single string (constant/variable)
@@ -145,12 +153,36 @@ class Bexp:
             else:
                 self.BASE.error(ErrorType.TYPE_ERROR,description="The operations are not compatible with the operands.")
 
-
-
-
     def evalC(self):
-        pass
-
+        if len(self.L) < 2:
+            self.BASE.error(ErrorType.SYNTAX_ERROR,description="Wrong call-expression format")
+        objName = self.L[1]
+        fields = self.OBJ.fields
+        theField = next((f for f in fields if f.name() == objName), (None,None))
+        if objName in self.Parameters:
+            callObj = self.Parameters[objName]
+        elif theField != (None,None):
+            callObj = theField.evaluate()
+        elif objName == "me":
+            callObj = self.OBJ
+        else:
+            self.BASE.error(ErrorType.NAME_ERROR,description="Can't find the parameter or field to call.") # Not so sure
+        # Check if it's an object and if it's not null
+        if not self.isObject(callObj):
+            self.BASE.error(ErrorType.FAULT_ERROR,description="Using non-object or null to make function call")
+        param_list = []
+        for e in self.L[3:]:
+            exp = Bexp(self.BASE,self.OBJ,Parameters=self.Parameters,initialList=e).evaluate()
+            param_list.append(exp)
+        methodName = self.L[2]
+        result = callObj.run_method(methodName,param_list)
+        if result is None or result == Bexp.RETURNED:
+            self.BASE.error(ErrorType.FAULT_ERROR,description="The call expression doensn't have a return value")
+        else:
+            if self.isObject(result):
+                return result
+            else:
+                return result
 
 def isArithmetic(s):
     if s == "+":
