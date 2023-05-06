@@ -181,7 +181,7 @@ class Bstatement:
                     return expVal # return object
                 else:
                     # const = Bconstant(self.BASE,stringify(expVal)) # Return Bconstant 
-                    return stringify(expVal)
+                    return expVal
                     # return const
             else:
                 self.BASE.error(ErrorType.SYNTAX_ERROR,description="Wrong return-statement format")

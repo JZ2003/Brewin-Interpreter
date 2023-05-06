@@ -10,55 +10,20 @@ class Interpreter(InterpreterBase):
         self.BclassList = []
     
     def run(self,program):
-        # class1 = Bclass(program,self)
-        # classObject1 = class1.instantiate_object()
-        # for f in classObject1.fields:
-        #     t, v = f.evaluate()
-        #     n = f.name()
-        #     print(f"{n}: type {t}, value: {v}")
-        # print("----------------")
-        # for m in classObject1.methods:
-        #     n = m.name()
-        #     s,p = m.test()
-        #     print(f"{n}: parameters: {p}, statement: {s}")
-        # string = "\"\""
-        # c = Bconstant(self,string)
-        # print(f"string represents {c.value}, with type {c.type}")
-        result, parsed_program = BParser.parse(program)
+        # result, parsed_program = BParser.parse(program)
+        parsed_program = program
         for c in parsed_program:
             self.BclassList.append(Bclass(c,self))
+        # Check dup in class definitions
+        className_list = [c.get_name() for c in self.BclassList]
+        if len(className_list) != len(set(className_list)):
+            self.error(ErrorType.TYPE_ERROR, description="Duplicate class definitions!")
         mainClass = next((c for c in self.BclassList if c.get_name() == INTBASE.MAIN_CLASS_DEF), (None,None))
         if mainClass == (None,None):
-            self.error(ErrorType.FAULT_ERROR("No main class!"))
+            self.error(ErrorType.FAULT_ERROR, description="No main class!")
         mainObj = mainClass.instantiate_object()
         mainObj.run_method("main", [])
 
-        # class1 = Bclass(program[1],self)
-        # Object1 = class1.instantiate_object()
-        # mainObj = class1.instantiate_object()
-        # mainObj.run_method("main",[])
-        # p1_val = Bconstant(self,"33345")
-        # p2_val = Bconstant(self,"\"skrr\"")
-        # p3_val = Bconstant(self,"false")
-        # result_val = Bconstant(self, "1")
-        # Parameters = {"p1": p1_val, "p2": p2_val, "p3": p3_val, "result": result_val}
-        # initial = ["!",["!",["!",["!", "ZJX"]]]]
-        # initial = ['begin', ['begin', ['begin', ['print', 'p1']]]]
-        # initial = ["if", "false", ["print","123"], ["print", "456"]]
-        # initial = ["set", "p3", ["new", "person"]]
-        # initial = ["|", "p1", "p3"]
-        # exp = Bexp(self,Object1,Parameters=Parameters,initialList=initial)
-        # print(f"This expression evaluates to {exp.evaluate()}, with type: {type(exp.evaluate())}")
-        # initial = ['while', ['>', 'n', '0'], ['begin', ['set', 'result', ['*', 'n', 'result']], ['set', 'n', ['-', 'n', '1']]]]
-        # initial = ['while', ['>', 'nn', '0'], ['begin', ['print', 'nn'], ['set', 'nn', ['-', 'nn', '1']]]]
-        # initial = ['while', ['>', 'nn', '0'], ['begin', ['if', ['>', 'nn', '-1000'], ['print', 'nn']], ['set', 'nn', ['-', 'nn', '1']]]]
-        # stm = Bstatement(self,Object1,initialList=initial)
-        # stm.process(Parameters=Parameters)
-        # print(Parameters["result"])
-        # print(Parameters["result"].evaluate())
-        # print("hello")
-        # print(Parameters["p3"].evaluate())
-        # print([(o.evaluate(), o.name()) for o in Object1.fields])
 
 
 
@@ -82,44 +47,40 @@ class Interpreter(InterpreterBase):
 
 
 
+def read_file(file_path):
+    """Reads a file of text and returns a list of strings."""
+    with open(file_path, 'r') as file:
+        lines = file.readlines()
+        lines = [line.strip() for line in lines]
+        return lines
+
+def print_line_nums(parsed_program):
+    for item in parsed_program:
+        if type(item) is not list:
+            print(f'{item} was found on line {item.line_num}')
+        else:
+            print_line_nums(item)
 
 
+def main():
+    # program_source = ['(class main',
+    # ' (method main ()',
+    # ' (print "hello world!")',
+    # ' ) # end of method',
+    # ') # end of class']
+    # program_source = ""
 
+    file_path = "./codeExample3.brewin"
+    program_source = read_file(file_path=file_path)
+    # this is how you use our BParser class to parse a valid
+    # Brewin program into python list format.
+    result, parsed_program = BParser.parse(program_source)
+    if result == True:    
+        I = Interpreter()
+        I.run(parsed_program)
+        # print_line_nums(parsed_program[0])
+        # print(parsed_program)
+    else:
+        print('Parsing failed. There must have been a mismatched parenthesis.')
 
-# def read_file(file_path):
-#     """Reads a file of text and returns a list of strings."""
-#     with open(file_path, 'r') as file:
-#         lines = file.readlines()
-#         lines = [line.strip() for line in lines]
-#         return lines
-
-# def print_line_nums(parsed_program):
-#     for item in parsed_program:
-#         if type(item) is not list:
-#             print(f'{item} was found on line {item.line_num}')
-#         else:
-#             print_line_nums(item)
-
-
-# def main():
-#     # program_source = ['(class main',
-#     # ' (method main ()',
-#     # ' (print "hello world!")',
-#     # ' ) # end of method',
-#     # ') # end of class']
-#     # program_source = ""
-
-#     file_path = "./codeExample3.brewin"
-#     program_source = read_file(file_path=file_path)
-#     # this is how you use our BParser class to parse a valid
-#     # Brewin program into python list format.
-#     result, parsed_program = BParser.parse(program_source)
-#     if result == True:    
-#         I = Interpreter()
-#         I.run(parsed_program)
-#         # print_line_nums(parsed_program[0])
-#         # print(parsed_program)
-#     else:
-#         print('Parsing failed. There must have been a mismatched parenthesis.')
-
-# main()
+main()
