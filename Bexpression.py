@@ -84,7 +84,7 @@ class Bexp:
                 # print(type(c))
                 if c.get_name() == e1: #NOTE: extremely wirld bug here: changing get_name() to name() won't work
                     return c.instantiate_object()
-            self.BASE.error(ErrorType.NAME_ERROR,description="Can't find the class definition.")
+            self.BASE.error(ErrorType.TYPE_ERROR,description="Can't find the class definition.")
         else:
             self.BASE.error(ErrorType.SYNTAX_ERROR,description="Wrong unary expression")
 
