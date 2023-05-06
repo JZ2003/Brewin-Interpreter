@@ -124,10 +124,14 @@ class Bexp:
 
             #DEAL WITH NULL! (VERY FLAKEY!)
             elif e1Val is None:
+                if e2Val is None:
+                    return eqneq(e1Val,e2Val)
                 if self.isconst(e2Val):
                     self.BASE.error(ErrorType.TYPE_ERROR,description="Can't compare null with primitive types")
                 return eqneq(e1Val,e2Val) # True
             elif e2Val is None:
+                if e1Val is None:
+                    return eqneq(e1Val,e2Val)
                 if self.isconst(e1Val):
                     self.BASE.error(ErrorType.TYPE_ERROR,description="Can't compare null with primitive types")
                 return eqneq(e1Val,e2Val) # True
