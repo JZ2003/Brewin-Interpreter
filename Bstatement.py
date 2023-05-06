@@ -103,7 +103,10 @@ class Bstatement:
             if len(self.L) != 3:
                 self.BASE.error(ErrorType.SYNTAX_ERROR,description="Wrong set-statement format")
             exp = self.L[2]
-            expVal = Bexp(self.BASE,self.OBJ,Parameters,initialList=exp).evaluate() # The value to assign
+            if isinstance(exp,list) and exp[0] == INTBASE.CALL_DEF:
+                expVal = Bstatement(self.BASE,self.OBJ,exp).process(Parameters)
+            else:
+                expVal = Bexp(self.BASE,self.OBJ,Parameters,initialList=exp).evaluate() # The value to assign
             toChange = self.L[1]
             fields = self.OBJ.fields
             theField = next((f for f in fields if f.name() == toChange), (None,None))
@@ -184,7 +187,10 @@ class Bstatement:
                 return Bstatement.RETURNED #NOT NONE
             elif len(self.L) == 2:
                 exp = self.L[1]
-                expVal = Bexp(self.BASE,self.OBJ,Parameters,initialList=exp).evaluate() # The value to return 
+                if isinstance(exp,list) and exp[0] == INTBASE.CALL_DEF:
+                    expVal = Bstatement(self.BASE,self.OBJ,exp).process(Parameters)
+                else:
+                    expVal = Bexp(self.BASE,self.OBJ,Parameters,initialList=exp).evaluate() # The value to return 
                 if self.isObject(expVal):
                     return expVal # return object
                 else:
