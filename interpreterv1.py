@@ -1,4 +1,4 @@
-from intbase import *
+from intbase import InterpreterBase, ErrorType
 from Bclass import *
 from Bexpression import Bexp
 from Bconstant import Bconstant
@@ -27,10 +27,16 @@ class Interpreter(InterpreterBase):
         # print(f"string represents {c.value}, with type {c.type}")
         for c in program:
             self.BclassList.append(Bclass(c,self))
-        class1 = Bclass(program[1],self)
+        mainClass = next((c for c in self.BclassList if c.get_name() == INTBASE.MAIN_CLASS_DEF), (None,None))
+        if mainClass == (None,None):
+            self.error(ErrorType.FAULT_ERROR("No main class!"))
+        mainObj = mainClass.instantiate_object()
+        mainObj.run_method("main", [])
+
+        # class1 = Bclass(program[1],self)
         # Object1 = class1.instantiate_object()
-        mainObj = class1.instantiate_object()
-        mainObj.run_method("main",[])
+        # mainObj = class1.instantiate_object()
+        # mainObj.run_method("main",[])
         # p1_val = Bconstant(self,"33345")
         # p2_val = Bconstant(self,"\"skrr\"")
         # p3_val = Bconstant(self,"false")
@@ -43,14 +49,14 @@ class Interpreter(InterpreterBase):
         # initial = ["|", "p1", "p3"]
         # exp = Bexp(self,Object1,Parameters=Parameters,initialList=initial)
         # print(f"This expression evaluates to {exp.evaluate()}, with type: {type(exp.evaluate())}")
-        initial = ['while', ['>', 'n', '0'], ['begin', ['set', 'result', ['*', 'n', 'result']], ['set', 'n', ['-', 'n', '1']]]]
+        # initial = ['while', ['>', 'n', '0'], ['begin', ['set', 'result', ['*', 'n', 'result']], ['set', 'n', ['-', 'n', '1']]]]
         # initial = ['while', ['>', 'nn', '0'], ['begin', ['print', 'nn'], ['set', 'nn', ['-', 'nn', '1']]]]
         # initial = ['while', ['>', 'nn', '0'], ['begin', ['if', ['>', 'nn', '-1000'], ['print', 'nn']], ['set', 'nn', ['-', 'nn', '1']]]]
         # stm = Bstatement(self,Object1,initialList=initial)
         # stm.process(Parameters=Parameters)
         # print(Parameters["result"])
         # print(Parameters["result"].evaluate())
-        print("hello")
+        # print("hello")
         # print(Parameters["p3"].evaluate())
         # print([(o.evaluate(), o.name()) for o in Object1.fields])
 
@@ -116,4 +122,4 @@ def main():
     else:
         print('Parsing failed. There must have been a mismatched parenthesis.')
 
-main()
+# main()
