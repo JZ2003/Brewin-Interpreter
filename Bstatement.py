@@ -173,7 +173,7 @@ class Bstatement:
         #RETURN
         elif self.L[0] == INTBASE.RETURN_DEF:
             if len(self.L) == 1:
-                return None #NOT NONE
+                return Bstatement.RETURNED #NOT NONE
             elif len(self.L) == 2:
                 exp = self.L[1]
                 expVal = Bexp(self.BASE,self.OBJ,Parameters,initialList=exp).evaluate() # The value to return 

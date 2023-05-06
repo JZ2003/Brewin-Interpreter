@@ -181,6 +181,8 @@ class Bexp:
         # else:
         if self.isObject(result):
             return result
+        elif result == Bexp.RETURNED:
+            return None
         else:
             return result
 
