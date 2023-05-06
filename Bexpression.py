@@ -176,13 +176,13 @@ class Bexp:
             param_list.append(exp)
         methodName = self.L[2]
         result = callObj.run_method(methodName,param_list)
-        if result is None or result == Bexp.RETURNED:
-            self.BASE.error(ErrorType.FAULT_ERROR,description="The call expression doensn't have a return value")
+        # if result is None or result == Bexp.RETURNED:
+        #     self.BASE.error(ErrorType.FAULT_ERROR,description="The call expression doensn't have a return value")
+        # else:
+        if self.isObject(result):
+            return result
         else:
-            if self.isObject(result):
-                return result
-            else:
-                return result
+            return result
 
 def isArithmetic(s):
     if s == "+":

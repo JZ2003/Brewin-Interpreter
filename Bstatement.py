@@ -40,7 +40,7 @@ class Bstatement:
                 if self.isObject(toPrint):
                     self.BASE.error(ErrorType.TYPE_ERROR,description="Can't print an object")
                 elif toPrint is None:
-                    self.BASE.error(ErrorType.TYPE_ERROR,description="Can't print a null")
+                    toPrint_str = toPrint_str + "None"
                 elif toPrint is True:
                     toPrint_str = toPrint_str + "true"
                 elif toPrint is False:
@@ -173,7 +173,7 @@ class Bstatement:
         #RETURN
         elif self.L[0] == INTBASE.RETURN_DEF:
             if len(self.L) == 1:
-                return Bstatement.RETURNED #NOT NONE
+                return None #NOT NONE
             elif len(self.L) == 2:
                 exp = self.L[1]
                 expVal = Bexp(self.BASE,self.OBJ,Parameters,initialList=exp).evaluate() # The value to return 
