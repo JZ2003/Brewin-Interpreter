@@ -37,14 +37,14 @@ class Bexp:
         if isinstance(self.L, str): # single string (constant/variable)
             s1 = self.L
             return self.eval1(s1)
+        elif self.L[0] == INTBASE.CALL_DEF:
+            return self.evalC()        
         elif len(self.L) == 2:
             s1,e1 = self.L
             return self.eval2(s1,e1)
         elif len(self.L) == 3:
             s1, e1, e2 = self.L
             return self.eval3(s1,e1,e2)
-        elif self.L[0] == INTBASE.CALL_DEF:
-            return self.evalC()
         else:
             self.BASE.error(ErrorType.SYNTAX_ERROR,description="Wrong expression syntax")
     
