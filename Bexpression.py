@@ -161,19 +161,26 @@ class Bexp:
         if len(self.L) < 2:
             self.BASE.error(ErrorType.SYNTAX_ERROR,description="Wrong call-expression format")
         objName = self.L[1]
-        fields = self.OBJ.fields
-        theField = next((f for f in fields if f.name() == objName), (None,None))
-        if objName in self.Parameters:
-            callObj = self.Parameters[objName]
-        elif theField != (None,None):
-            callObj = theField.evaluate()
-        elif objName == "me":
-            callObj = self.OBJ
+        if isinstance(objName,list):
+            if objName[0] == INTBASE.CALL_DEF:
+                callObj = Bexp(self.BASE,self.OBJ,self.Parameters,objName).evaluate()
+            elif objName[0] == INTBASE.NEW_DEF:
+                callObj = Bexp(self.BASE,self.OBJ,self.Parameters,objName).evaluate()
         else:
-            self.BASE.error(ErrorType.NAME_ERROR,description="Can't find the parameter or field to call.") # Not so sure
+            fields = self.OBJ.fields
+            theField = next((f for f in fields if f.name() == objName), (None,None))
+            if objName in self.Parameters:
+                callObj = self.Parameters[objName]
+            elif theField != (None,None):
+                callObj = theField.evaluate()
+            elif objName == "me":
+                callObj = self.OBJ
+            else:
+                self.BASE.error(ErrorType.NAME_ERROR,description="Can't find the parameter or field to call.") # Not so sure
         # Check if it's an object and if it's not null
         if not self.isObject(callObj):
             self.BASE.error(ErrorType.FAULT_ERROR,description="Using non-object or null to make function call")
+        
         param_list = []
         for e in self.L[3:]:
             exp = Bexp(self.BASE,self.OBJ,Parameters=self.Parameters,initialList=e).evaluate()
