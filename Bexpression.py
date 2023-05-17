@@ -1,12 +1,13 @@
 from intbase import InterpreterBase as INTBASE
 from intbase import ErrorType
 from Bconstant import Bconstant
+from Bnull import Bnull
 # from Bfield import Bfield
 # from Bobject import Bobject
 # from Bclass import Bclass
 class Bexp:
     RETURNED = "finish"
-    def __init__(self,BASE,OBJ,Parameters,initialList):
+    def __init__(self,BASE,OBJ,varList,initialList):
         """
         BASE: the interpreter pointer
         OBJ: the OBJ pointer of the object in which the expression is called (fields)
@@ -15,9 +16,8 @@ class Bexp:
         """
         self.BASE = BASE
         self.OBJ = OBJ
-        self.Parameters = Parameters
+        self.varList = varList
         self.L = initialList # Might be a list or a single string
-        pass
 
     def isconst(self,thing):
         try:
@@ -26,7 +26,7 @@ class Bexp:
         except:
             return False
 
-    def isObject(self,thing):
+    def isObject(self,thing): # Test and see if it's Bnull or Bobject
         try:
             const = Bconstant(self.BASE, stringify(thing))
             return False
@@ -34,6 +34,9 @@ class Bexp:
             return True
 
     def evaluate(self):
+        """
+        RETURN: Python primitive/Bobject instances/Bnull instances
+        """
         if isinstance(self.L, str): # single string (constant/variable)
             s1 = self.L
             return self.eval1(s1)
@@ -56,32 +59,24 @@ class Bexp:
             constant = Bconstant(self.BASE,s1)
             return constant.evaluate()
         except SyntaxError:
-            # Else, check if it's variable or parameters
-            # Check parameters first
-            if s1 in self.Parameters:
-                p = self.Parameters[s1]
-                return p.evaluate() # Even parameters need to be evaluated
-            # Then check fields
-            else:
-                fields = self.OBJ.fields
-                val = next((f for f in fields if f.name() == s1), (None,None))
-                # Use (None,None) to represent "we can't find it" since None might be the value
-                if val != (None,None):
-                    return val.evaluate()
-                else:
-                    self.BASE.error(ErrorType.NAME_ERROR,description="Can't find the variable.")
+            if s1 == INTBASE.NULL_DEF:
+                return Bnull() # If it's 'null' literal, then it evaluates to be a generic null.
+            # Then, the next possibility is that s1 refers to a variable(fields/locals/params)
+            for v in self.varList:
+                if v.name() == s1:
+                    return v.evaluate() # A python primitive/Bobject/Bnull
+            self.BASE.error(ErrorType.NAME_ERROR,description="Can't find the variable.")
 
     def eval2(self,s1,e1):
         if s1 == "!":
-            e1Val = Bexp(self.BASE,self.OBJ,self.Parameters,e1).evaluate()
+            e1Val = Bexp(self.BASE,self.OBJ,varList=self.varList,initialList=e1).evaluate()
             if isinstance(e1Val,bool):
                 return not e1Val
             else:
                 self.BASE.error(ErrorType.TYPE_ERROR,description="The operations are not compatible with the operands.")
         elif s1 == INTBASE.NEW_DEF:
-            BclassDefs = self.BASE.BclassList
+            BclassDefs = self.BASE.BclassList()
             for c in BclassDefs:
-                # print(type(c))
                 if c.get_name() == e1: #NOTE: extremely wirld bug here: changing get_name() to name() won't work
                     return c.instantiate_object()
             self.BASE.error(ErrorType.TYPE_ERROR,description="Can't find the class definition.")
@@ -91,8 +86,8 @@ class Bexp:
     def eval3(self,s1,e1,e2):
         #CASE1: integer arithmetic or string concatenation
         op = isArithmetic(s1)
-        e1Val = Bexp(self.BASE,self.OBJ,self.Parameters,e1).evaluate()
-        e2Val = Bexp(self.BASE,self.OBJ,self.Parameters,e2).evaluate()
+        e1Val = Bexp(self.BASE,self.OBJ,varList=self.varList,initialList=e1).evaluate()
+        e2Val = Bexp(self.BASE,self.OBJ,varList=self.varList,initialList=e2).evaluate()
         try:
             if op is not None:
                 if type(e1Val) is not type(e2Val):
@@ -112,7 +107,7 @@ class Bexp:
         except:
             self.BASE.error(ErrorType.TYPE_ERROR,description="The operations are not compatible with the operands.")
         
-        #CASE3: == and !=, integer, string, boolean, or null comparison 
+        #CASE3: == and !=, integer, string, boolean 
         eqneq = isEqNotEq(s1)
         if eqneq is not None:
             if isinstance(e1Val,int) and isinstance(e2Val,int):
@@ -122,32 +117,22 @@ class Bexp:
             elif isinstance(e1Val,str) and isinstance(e2Val,str):
                 return eqneq(e1Val,e2Val)
 
-            #DEAL WITH NULL! (VERY FLAKEY!)
-            elif e1Val is None:
-                if e2Val is None:
-                    return eqneq(e1Val,e2Val)
-                if self.isconst(e2Val):
-                    self.BASE.error(ErrorType.TYPE_ERROR,description="Can't compare null with primitive types")
-                return eqneq(e1Val,e2Val) # True
-            elif e2Val is None:
-                if e1Val is None:
-                    return eqneq(e1Val,e2Val)
-                if self.isconst(e1Val):
-                    self.BASE.error(ErrorType.TYPE_ERROR,description="Can't compare null with primitive types")
-                return eqneq(e1Val,e2Val) # True
-                
-            # elif e1Val == None:
-            #     if not isinstance(e2Val,Bobject):
-            #         self.BASE.error(ErrorType.TYPE_ERROR,description="The two operands are not compatible.")
-            #     else:
-            #         return eqneq(e1Val,e2Val)
-            # elif e2Val == None:
-            #     if not isinstance(e1Val,Bobject):
-            #         self.BASE.error(ErrorType.TYPE_ERROR,description="The two operands are not compatible.")
-            #     else:
-            #         return eqneq(e1Val,e2Val)            
+        #CASE3.5: null and object comparison
+        eqneq = objEqNotEq(s1)
+        if eqneq is not None:
+            if self.isconst(e1Val) or self.isconst(e2Val):
+                self.BASE.error(ErrorType.TYPE_ERROR,description="Can't compare primitive types with null or objects")
+            elif e1Val.get_type() is None or e2Val.get_type() is None: # At least one of them is a generic null
+                if isinstance(e1Val,Bnull) and isinstance(e2Val,Bnull):
+                    return eqneq(True)
+                else:
+                    return eqneq(False)
+            elif e1Val.get_type() != e2Val.get_type():
+                self.BASE.error(ErrorType.TYPE_ERROR,description="Can't compare two things of different types")
+            elif isinstance(e1Val,Bnull) and isinstance(e2Val,Bnull):
+                return eqneq(True)
             else:
-                self.BASE.error(ErrorType.TYPE_ERROR,description="The operations are not compatible with the operands.")
+                return eqneq(e1Val is e2Val) # Object reference comparison or one null one object of the same type
 
         #CASE4: boolean & and |
         andor = isAndOr(s1)
@@ -161,29 +146,26 @@ class Bexp:
         if len(self.L) < 2:
             self.BASE.error(ErrorType.SYNTAX_ERROR,description="Wrong call-expression format")
         objName = self.L[1]
-        if isinstance(objName,list):
+        if isinstance(objName,list): #If it's call or new
             if objName[0] == INTBASE.CALL_DEF:
-                callObj = Bexp(self.BASE,self.OBJ,self.Parameters,objName).evaluate()
+                callObj = Bexp(self.BASE,self.OBJ,varList=self.varList,initialList=objName).evaluate()
             elif objName[0] == INTBASE.NEW_DEF:
-                callObj = Bexp(self.BASE,self.OBJ,self.Parameters,objName).evaluate()
+                callObj = Bexp(self.BASE,self.OBJ,varList=self.varList,initialList=objName).evaluate()
+        elif objName == "me":
+            callObj = self.OBJ
         else:
-            fields = self.OBJ.fields
-            theField = next((f for f in fields if f.name() == objName), (None,None))
-            if objName in self.Parameters:
-                callObj = self.Parameters[objName]
-            elif theField != (None,None):
-                callObj = theField.evaluate()
-            elif objName == "me":
-                callObj = self.OBJ
-            else:
-                self.BASE.error(ErrorType.NAME_ERROR,description="Can't find the parameter or field to call.") # Not so sure
-        # Check if it's an object and if it's not null
-        if not self.isObject(callObj):
+            for v in self.varList:
+                if v.name() == objName:
+                    callObj = v.evaluate()
+                    break
+            self.BASE.error(ErrorType.NAME_ERROR,description="Can't find the parameter or field to call.") # Not so sure
+
+        if (not self.isObject(callObj)) or isinstance(callObj,Bnull): ## Since Now null type IS AN OBJECT
             self.BASE.error(ErrorType.FAULT_ERROR,description="Using non-object or null to make function call")
         
         param_list = []
         for e in self.L[3:]:
-            exp = Bexp(self.BASE,self.OBJ,Parameters=self.Parameters,initialList=e).evaluate()
+            exp = Bexp(self.BASE,self.OBJ,varList=self.varList,initialList=e).evaluate()
             param_list.append(exp)
         methodName = self.L[2]
         result = callObj.run_method(methodName,param_list)
@@ -192,7 +174,7 @@ class Bexp:
         # else:
         if self.isObject(result):
             return result
-        elif result == Bexp.RETURNED:
+        elif result == (None,None):
             return None
         else:
             return result
@@ -228,6 +210,14 @@ def isEqNotEq(s):
         return lambda x, y: True if x == y else False
     elif s == "!=":
         return lambda x, y: True if x != y else False
+    else:
+        return None
+
+def objEqNotEq(s):
+    if s == "==":
+        return lambda x: x
+    elif s == "!=":
+        return lambda x: not x
     else:
         return None
 

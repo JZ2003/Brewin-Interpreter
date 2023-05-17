@@ -28,7 +28,7 @@ class Bclass:
         
         #TODO: Check fields and methods don't have duplicate names
         #DONE:
-        listOfFieldAndMethodNames = [f[1] for f in self.fields] + [m[1] for m in self.methods]
+        listOfFieldAndMethodNames = [f[2] for f in self.fields] + [m[2] for m in self.methods]
         if len(listOfFieldAndMethodNames) != len(set(listOfFieldAndMethodNames)):
             self.BASE.error(ErrorType.NAME_ERROR,description="Can't have duplicate field or method` names")
     

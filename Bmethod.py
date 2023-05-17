@@ -1,16 +1,25 @@
 from intbase import InterpreterBase as INTBASE
 from intbase import ErrorType
-# from Bconstant import Bconstant
+from Bconstant import Bconstant
 # from Bexpression import Bexp
 from Bstatement import Bstatement
+
 class Bmethod:
     def __init__(self,BASE,OBJ,initialList):
         self.BASE = BASE
         self.OBJ = OBJ # The object it belongs to; used to access field variables and "ME".
         self.methodName = None
         self.statement = None
-        self.parameters = []
+        self.parameters = [] # A list of tuples recording type, name of parameters
+        self.methodType = None # None if it's void
         self.__parse_name_and_statement(initialList)
+    
+    def isObject(self,thing):
+        try:
+            const = Bconstant(self.BASE, stringify(thing))
+            return False
+        except:
+            return True
     
     def name(self):
         return self.methodName
@@ -22,15 +31,25 @@ class Bmethod:
         return self.statement
     
     def __parse_name_and_statement(self,l):
-        pass
-        self.methodName = l[1]
-        self.parameters = l[2]
-        self.statement = l[3] #TODO: instantiate a real statement
+        self.methodName = l[2]
+        if l[1] == INTBASE.VOID_DEF:
+            self.methodType = None # If it's void
+        elif l[1] in self.BASE.get_allTypeNames():
+            self.methodType = l[1] # If it's non-void
+        else:
+            self.BASE.error(ErrorType.TYPE_ERROR,description=f"Invalid return type for the method {self.methodName}.")
+        self.parameters = []
+        for i in l[3]:
+            if i[0] not in self.BASE.get_allTypeNames():
+                self.BASE.error(ErrorType.TYPE_ERROR,description=f"Invalid param type for the method {self.methodName}.")
+            else:
+                self.parameters.append((i[0],i[1]))  # i[0] is the type; i[1] is the name
+        self.statement = l[4] 
 
-    def execute_statement(self,Parameters):
+    def execute_statement(self,var_list):
         # evaluate the statement with parameters and OBJ fields
         """
-        Parameters: (dict) get parameters from the object call_method function
+        var_list: (list)parameters+fields from the object call_method function
         """
 
         # if len(self.parameters) != len(Parameters):
@@ -38,8 +57,42 @@ class Bmethod:
         # Prmt_evaluated = [Bexp(self.BASE) for p in Parameters]
 
         stm = Bstatement(self.BASE,self.OBJ,self.statement)
-        result = stm.process(Parameters=Parameters)
-        return result
+        result = stm.process(var_list = var_list)
 
-    def test(self):
-        return self.statement, self.parameters
+        if result is None or result == (None,None): #Return nothing
+            # print(self.methodType)
+            if self.methodType is None: #If it's void type
+                return None
+            else:
+                raise NotImplementedError
+
+        if not self.isObject(result): # It's a primitive type
+            const = Bconstant(self.BASE,stringify(result))
+            if const.get_type() == self.methodType:
+                return result
+            else:
+                self.BASE.error(ErrorType.TYPE_ERROR,description="The value type is not compatible with the method return type.")
+        else: #It's Bobject or Bnull
+            if result.get_type() is None:
+                if self.methodType in [INTBASE.INT_DEF,INTBASE.STRING_DEF,INTBASE.BOOL_DEF]:
+                    self.BASE.error(ErrorType.TYPE_ERROR,description="Null can't be returned as a primitive type")
+                result.change_type(className=self.methodType)
+                return result
+            else:
+                if result.get_type() == self.methodType:
+                    return result
+                else:
+                    self.BASE.error(ErrorType.TYPE_ERROR,description="The value type is not compatible with the method return type.")   
+
+    # def test(self):
+    #     return self.statement, self.parameters
+
+def stringify(val):
+    if val is None:
+        return "null"
+    elif isinstance(val, bool):
+        return str(val).lower()
+    elif isinstance(val, str):
+        return '"' + val + '"'
+    else: #int case
+        return str(val)
