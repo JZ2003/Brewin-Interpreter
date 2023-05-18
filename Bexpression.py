@@ -75,7 +75,7 @@ class Bexp:
             else:
                 self.BASE.error(ErrorType.TYPE_ERROR,description="The operations are not compatible with the operands.")
         elif s1 == INTBASE.NEW_DEF:
-            BclassDefs = self.BASE.BclassList()
+            BclassDefs = self.BASE.get_BclassList()
             for c in BclassDefs:
                 if c.get_name() == e1: #NOTE: extremely wirld bug here: changing get_name() to name() won't work
                     return c.instantiate_object()
@@ -154,11 +154,11 @@ class Bexp:
         elif objName == "me":
             callObj = self.OBJ
         else:
-            for v in self.varList:
-                if v.name() == objName:
-                    callObj = v.evaluate()
-                    break
-            self.BASE.error(ErrorType.NAME_ERROR,description="Can't find the parameter or field to call.") # Not so sure
+            callObj = next((v for v in self.varList if v.name() == objName), None)
+            if callObj is None:
+                self.BASE.error(ErrorType.NAME_ERROR,description="Can't find the parameter or field to call.") # Not so sure
+            else:
+                callObj = callObj.evaluate()
 
         if (not self.isObject(callObj)) or isinstance(callObj,Bnull): ## Since Now null type IS AN OBJECT
             self.BASE.error(ErrorType.FAULT_ERROR,description="Using non-object or null to make function call")

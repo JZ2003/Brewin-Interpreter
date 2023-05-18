@@ -3,6 +3,7 @@ from intbase import ErrorType
 from Bconstant import Bconstant
 # from Bexpression import Bexp
 from Bstatement import Bstatement
+from Bnull import Bnull
 
 class Bmethod:
     def __init__(self,BASE,OBJ,initialList):
@@ -64,7 +65,14 @@ class Bmethod:
             if self.methodType is None: #If it's void type
                 return None
             else:
-                raise NotImplementedError
+                if self.methodType == INTBASE.INT_DEF:
+                    return 0
+                elif self.methodType == INTBASE.BOOL_DEF:
+                    return False
+                elif self.methodType == INTBASE.STRING_DEF:
+                    return ""
+                else:
+                    return Bnull(self.methodName)
 
         if not self.isObject(result): # It's a primitive type
             const = Bconstant(self.BASE,stringify(result))
@@ -73,7 +81,7 @@ class Bmethod:
             else:
                 self.BASE.error(ErrorType.TYPE_ERROR,description="The value type is not compatible with the method return type.")
         else: #It's Bobject or Bnull
-            if result.get_type() is None:
+            if result.get_type() is None: # Generic null case
                 if self.methodType in [INTBASE.INT_DEF,INTBASE.STRING_DEF,INTBASE.BOOL_DEF]:
                     self.BASE.error(ErrorType.TYPE_ERROR,description="Null can't be returned as a primitive type")
                 result.change_type(className=self.methodType)

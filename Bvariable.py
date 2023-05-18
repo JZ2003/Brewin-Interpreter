@@ -25,6 +25,6 @@ class BVariable:
 
     def evaluate(self):
         if isinstance(self.value, Bconstant):
-            return self.value.value # primitives, nulls
+            return self.value.value # primitives
         else:
             return self.value # class objects

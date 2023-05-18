@@ -88,7 +88,7 @@ class Bobject:
                     else:
                          self.BASE.error(ErrorType.NAME_ERROR,description="Null can't be used passed to primitive-typed parameters.")
                 else: # If it's a non-generic null or an object
-                    if const.get_type() == mp[0]: #TODO: Check subclasses
+                    if p.get_type() == mp[0]: #TODO: Check subclasses
                         var_list.append(BVariable(self.BASE, varName=mp[1], initialValue=p, varType=mp[0]))
                     else:
                         self.BASE.error(ErrorType.NAME_ERROR,description="Passing a parameter with wrong type.")

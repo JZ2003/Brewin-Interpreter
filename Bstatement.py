@@ -162,7 +162,7 @@ class Bstatement:
                 self.BASE.error(ErrorType.SYNTAX_ERROR,description="Wrong call-statement format")
             objName = self.L[1]
 
-
+            # print(f"The objName is {objName}")
             if isinstance(objName,list): #If it's call or new
                 if objName[0] == INTBASE.CALL_DEF:
                     callObj = Bexp(self.BASE,self.OBJ,varList=var_list,initialList=objName).evaluate()
@@ -171,12 +171,11 @@ class Bstatement:
             elif objName == "me":
                 callObj = self.OBJ
             else:
-                for v in var_list:
-                    if v.name() == objName:
-                        callObj = v.evaluate()
-                        break
-                self.BASE.error(ErrorType.NAME_ERROR,description="Can't find the parameter or field to call.") # Not so sure
-
+                callObj = next((v for v in var_list if v.name() == objName), None)
+                if callObj is None:
+                    self.BASE.error(ErrorType.NAME_ERROR,description="Can't find the parameter or field to call.") # Not so sure
+                else:
+                    callObj = callObj.evaluate()
             if (not self.isObject(callObj)) or isinstance(callObj,Bnull): ## Since Now null type IS AN OBJECT
                 self.BASE.error(ErrorType.FAULT_ERROR,description="Using non-object or null to make function call")
 
@@ -185,30 +184,26 @@ class Bstatement:
                 exp = Bexp(self.BASE,self.OBJ,varList=var_list,initialList=e).evaluate()
                 param_list.append(exp)
             methodName = self.L[2]
+            # print(f"Now it's object {callObj.classNAME}, with a parameter of len {len(param_list)}")
             result = callObj.run_method(methodName,param_list)
             return result
         
         #RETURN
         elif self.L[0] == INTBASE.RETURN_DEF:
             if len(self.L) == 1:
-                return (None,None) #NOT NONE
+                return (None,None) #NOT NONE, but should immediately return.
             elif len(self.L) == 2:
                 exp = self.L[1]
                 if isinstance(exp,list) and exp[0] == INTBASE.CALL_DEF:
                     expVal = Bstatement(self.BASE,self.OBJ,exp).process(var_list)
                 else:
                     expVal = Bexp(self.BASE,self.OBJ,var_list,initialList=exp).evaluate() # The value to return 
-                if self.isObject(expVal):
-                    return expVal # return object
-                else:
-                    # const = Bconstant(self.BASE,stringify(expVal)) # Return Bconstant 
-                    return expVal
-                    # return const
+                return expVal
             else:
                 self.BASE.error(ErrorType.SYNTAX_ERROR,description="Wrong return-statement format")
 
         else:
-            raise NotImplementedError
+            raise RuntimeError
 
         
 
