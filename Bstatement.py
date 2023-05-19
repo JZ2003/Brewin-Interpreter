@@ -191,7 +191,7 @@ class Bstatement:
                 if inputVal.get_type() == theVar.get_type():
                     theVar.change_value(newValue=inputVal)
                 else:
-                    self.BASE.error(ErrorType.SYNTAX_ERROR,description="The input type is incompatible with the variable type.")
+                    self.BASE.error(ErrorType.TYPE_ERROR,description="The input type is incompatible with the variable type.")
             else:
                 self.BASE.error(ErrorType.NAME_ERROR,description="Can't find the parameter or field to set.")
         
