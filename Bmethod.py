@@ -46,6 +46,9 @@ class Bmethod:
                 self.BASE.error(ErrorType.TYPE_ERROR,description=f"Invalid param type for the method {self.methodName}.")
             else:
                 self.parameters.append((i[0],i[1]))  # i[0] is the type; i[1] is the name
+        paramNameSet = set([i[1] for i in self.parameters])
+        if len(paramNameSet) != len(self.parameters):
+            self.BASE.error(ErrorType.NAME_ERROR,description=f"Can't have duplicate formal parameters.")
         self.statement = l[4] 
 
     def execute_statement(self,var_list):
