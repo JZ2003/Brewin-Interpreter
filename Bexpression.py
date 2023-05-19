@@ -127,7 +127,7 @@ class Bexp:
                     return eqneq(True)
                 else:
                     return eqneq(False)
-            elif set(e1Val.get_type()).issubset(set(e2Val.get_type())) or set(e2Val.get_type()).issubset(set(e1Val.get_type())):
+            elif not set(e1Val.get_type()).issubset(set(e2Val.get_type())) and not set(e2Val.get_type()).issubset(set(e1Val.get_type())):
                 self.BASE.error(ErrorType.TYPE_ERROR,description="Can't compare two things of different types")
             elif isinstance(e1Val,Bnull) and isinstance(e2Val,Bnull):
                 return eqneq(True)
