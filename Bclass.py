@@ -35,8 +35,8 @@ class Bclass:
             self.BASE.error(ErrorType.SYNTAX_ERROR,description="Wrong class definition syntax")
         
         # Check if there is at least one method in the Bclass definition
-        if(len(self.methods) < 1):
-            self.BASE.error(ErrorType.TYPE_ERROR,description="A class must have at least one method.")
+        # if(len(self.methods) < 1):
+        #     self.BASE.error(ErrorType.TYPE_ERROR,description="A class must have at least one method.")
         
         #TODO: Check fields and methods don't have duplicate names
         #DONE:
