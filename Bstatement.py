@@ -49,6 +49,10 @@ class Bstatement:
                         self.BASE.error(ErrorType.TYPE_ERROR,description="Local variable initial value is of wrong type")
                 newLocVar = BVariable(self.BASE, varName=name, initialValue=valObj,varType=type)
                 locVarList.append(newLocVar)
+            # CHECK duplicate local variables
+            locVarNameSet = set([i.name() for i in locVarList])
+            if len(locVarNameSet) != len(locVarList):
+                self.BASE.error(ErrorType.NAME_ERROR,description="Can't have local variables of the same name.")
             for s in self.L[2:]:
                 newStatement = Bstatement(self.BASE, self.OBJ, s)
                 result = newStatement.process(var_list=locVarList+var_list)
