@@ -179,7 +179,7 @@ class Bstatement:
             if len(self.L) != 2:
                 self.BASE.error(ErrorType.SYNTAX_ERROR,description="Wrong input-statement format")
             input = self.BASE.get_input() # get input with python string format
-            if input.isdigit(): #inputi case
+            if input.isdigit() or (input[0] == "-" and input[1:].isdigit()): #inputi case
                 inputVal = Bconstant(self.BASE,input)
             else: #inputs case
                 inputVal = Bconstant(self.BASE, '"' + input + '"') #NOTE: to denote a Bstring, 
