@@ -15,7 +15,11 @@ class Bfield:
     
     def __parse_initial_value(self,initialValue):
         if initialValue == INTBASE.NULL_DEF: # Deal with object scenario
-            self.value = Bnull(className=self.fieldType)
+            for c in self.BASE.get_BclassList():
+                if self.fieldType == c.get_single_name():
+                    self.value = Bnull(className=c.get_name())
+                    break            
+           # self.value = Bnull(className=self.fieldType)
         else:  # Primitive scenario
             self.value = Bconstant(self.BASE,initialValue) 
             # check to do initial type checking:

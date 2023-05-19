@@ -34,6 +34,7 @@ class Bmethod:
     def __parse_name_and_statement(self,l):
         self.methodName = l[2]
         if l[1] == INTBASE.VOID_DEF:
+            #print("haha")
             self.methodType = None # If it's void
         elif l[1] in self.BASE.get_allTypeNames():
             self.methodType = l[1] # If it's non-void
@@ -72,10 +73,14 @@ class Bmethod:
                 elif self.methodType == INTBASE.STRING_DEF:
                     return ""
                 else:
-                    return Bnull(self.methodName)
-
+                    for c in self.BASE.get_BclassList():
+                        if self.methodType == c.get_single_name():
+                            return Bnull(className=c.get_name())
+                    raise NotImplementedError
         if not self.isObject(result): # It's a primitive type
             const = Bconstant(self.BASE,stringify(result))
+            #print(const.evaluate(), self.methodType,self.methodName)
+            #print(const)
             if const.get_type() == self.methodType:
                 return result
             else:
@@ -84,10 +89,13 @@ class Bmethod:
             if result.get_type() is None: # Generic null case
                 if self.methodType in [INTBASE.INT_DEF,INTBASE.STRING_DEF,INTBASE.BOOL_DEF]:
                     self.BASE.error(ErrorType.TYPE_ERROR,description="Null can't be returned as a primitive type")
-                result.change_type(className=self.methodType)
+                for c in self.BASE.get_BclassList():
+                    if self.methodType == c.get_single_name():
+                        result.change_type(className=c.get_name())
+                        break    
                 return result
             else:
-                if result.get_type() == self.methodType:
+                if self.methodType in result.get_type():
                     return result
                 else:
                     self.BASE.error(ErrorType.TYPE_ERROR,description="The value type is not compatible with the method return type.")   

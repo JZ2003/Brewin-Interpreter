@@ -7,13 +7,21 @@ from intbase import ErrorType
 from Bvariable import BVariable
 
 class Bobject:
-    def __init__(self,BASE,className,fields,methods):
+    def __init__(self,BASE,className,fields,methods,super_class=None,sub=None):
+        """
+        super_class: (Bclass) 
+        sub: (Bobject) 
+        """
         self.BASE = BASE
         self.classNAME = className
         self.fields = []
         self.methods = []
         self.__add_field(fields)
         self.__add_method(methods)
+        self.superObj = None
+        if super_class is not None:
+            self.superObj = super_class.instantiate_object(subObject=self)
+        self.subObj = sub
     
     def isObject(self,thing):
         try:
@@ -55,6 +63,12 @@ class Bobject:
             newFieldObject = Bfield(self.BASE,fieldName=f[2],initialValue=f[3],fieldType=f[1])
             self.fields.append(newFieldObject)
     
+    def get_the_most_derived(self):
+        obj = self
+        while obj.subObj is not None:
+            obj = obj.subObj
+        return obj
+
     def run_method(self, method_name, param_list):
         """
         method_name: (str) the name of the method to be called
@@ -62,13 +76,22 @@ class Bobject:
                     It could be objects or python primitives
         """
         # Find if such method exists
-        theMethod = next((m for m in self.methods if m.name() == method_name), (None,None))
-        if theMethod == (None,None):
-            self.BASE.error(ErrorType.NAME_ERROR,description="Calling an undefined method.")
+        theMethod = next((m for m in self.methods if m.name() == method_name), None)
+        if theMethod is None:
+            if self.superObj is not None:
+                result = self.superObj.run_method(method_name,param_list)
+                return result
+            else:
+                self.BASE.error(ErrorType.NAME_ERROR,description="Calling an undefined method.")
+        
         method_param = theMethod.get_parameters()
         # Check if the # of parameters is correct
         if len(param_list) != len(method_param):
-            self.BASE.error(ErrorType.TYPE_ERROR,description="Calling a method with wrong number of parameters.")
+            if self.superObj is not None:
+                result = self.superObj.run_method(method_name,param_list)
+                return result
+            else:
+                self.BASE.error(ErrorType.NAME_ERROR,description="Calling an undefined method.")
 
         var_list = []
         
@@ -76,26 +99,41 @@ class Bobject:
         for p, mp in zip(param_list, method_param):
             if not self.isObject(p):  
                 const = Bconstant(self.BASE,stringify(p))
-                if const.get_type() == mp[0]: #TODO: Check subclasses
+                if const.get_type() == mp[0]:
                     var_list.append(BVariable(self.BASE, varName=mp[1], initialValue=const, varType=mp[0]))
                 else:
-                    self.BASE.error(ErrorType.NAME_ERROR,description="Passing a parameter with wrong type.")
+                    if self.superObj is not None:
+                        result = self.superObj.run_method(method_name,param_list)
+                        return result
+                    else:
+                        self.BASE.error(ErrorType.NAME_ERROR,description="Calling an undefined method.")
             else:
                 if p.get_type() is None: # If the value is a generic null
                     if mp[0] not in [INTBASE.INT_DEF,INTBASE.STRING_DEF,INTBASE.BOOL_DEF]:
-                        p.change_type(mp[0])
+                        for c in self.BASE.get_BclassList():
+                            if mp[0] == c.get_single_name():
+                                p.change_type(className=c.get_name())                         
+                                break
                         var_list.append(BVariable(self.BASE, varName=mp[1], initialValue=p, varType=mp[0]))
                     else:
-                         self.BASE.error(ErrorType.NAME_ERROR,description="Null can't be used passed to primitive-typed parameters.")
+                        if self.superObj is not None:
+                            result = self.superObj.run_method(method_name,param_list)
+                            return result
+                        else:
+                            self.BASE.error(ErrorType.NAME_ERROR,description="Calling an undefined method.")
                 else: # If it's a non-generic null or an object
-                    if p.get_type() == mp[0]: #TODO: Check subclasses
+                    if mp[0] in p.get_type(): #TODO: Check subclasses #SEEMINGLY DONE
                         var_list.append(BVariable(self.BASE, varName=mp[1], initialValue=p, varType=mp[0]))
                     else:
-                        self.BASE.error(ErrorType.NAME_ERROR,description="Passing a parameter with wrong type.")
+                        if self.superObj is not None:
+                            result = self.superObj.run_method(method_name,param_list)
+                            return result
+                        else:
+                            self.BASE.error(ErrorType.NAME_ERROR,description="Calling an undefined method.")
 
         ## Add all fields to the var_list
         var_list += self.fields
-
+        #print("log1")
         result = theMethod.execute_statement(var_list)
         return result
     
@@ -103,6 +141,10 @@ class Bobject:
         return self
 
     def get_type(self):
+        """
+        Return: (list) a list that consists of this object's class name and
+                all its superclasses' names.
+        """
         return self.classNAME
 
 # def isObject(thing):

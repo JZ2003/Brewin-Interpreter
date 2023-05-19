@@ -77,7 +77,7 @@ class Bexp:
         elif s1 == INTBASE.NEW_DEF:
             BclassDefs = self.BASE.get_BclassList()
             for c in BclassDefs:
-                if c.get_name() == e1: #NOTE: extremely wirld bug here: changing get_name() to name() won't work
+                if c.get_single_name() == e1:
                     return c.instantiate_object()
             self.BASE.error(ErrorType.TYPE_ERROR,description="Can't find the class definition.")
         else:
@@ -127,7 +127,7 @@ class Bexp:
                     return eqneq(True)
                 else:
                     return eqneq(False)
-            elif e1Val.get_type() != e2Val.get_type():
+            elif set(e1Val.get_type()).issubset(set(e2Val.get_type())) or set(e2Val.get_type()).issubset(set(e1Val.get_type())):
                 self.BASE.error(ErrorType.TYPE_ERROR,description="Can't compare two things of different types")
             elif isinstance(e1Val,Bnull) and isinstance(e2Val,Bnull):
                 return eqneq(True)
@@ -151,8 +151,13 @@ class Bexp:
                 callObj = Bexp(self.BASE,self.OBJ,varList=self.varList,initialList=objName).evaluate()
             elif objName[0] == INTBASE.NEW_DEF:
                 callObj = Bexp(self.BASE,self.OBJ,varList=self.varList,initialList=objName).evaluate()
-        elif objName == "me":
-            callObj = self.OBJ
+        elif objName == INTBASE.ME_DEF:
+            callObj = self.OBJ.get_the_most_derived()
+        elif objName == INTBASE.SUPER_DEF:
+            if self.OBJ.superObj is not None:
+                callObj = self.OBJ.superObj
+            else:
+                self.BASE.error(ErrorType.NAME_ERROR,description="Can't find such a method from the super object.")
         else:
             callObj = next((v for v in self.varList if v.name() == objName), None)
             if callObj is None:

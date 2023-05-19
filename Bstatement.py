@@ -5,6 +5,7 @@ from Bexpression import Bexp
 # from Bobject import isObject
 from Bconstant import Bconstant
 from Bnull import Bnull
+from Bvariable import BVariable
 
 class Bstatement:
     #RETURNED = "finish"
@@ -24,8 +25,38 @@ class Bstatement:
         """
         var_list: (dict) passed in when we call obj_x.run_method("method_name, var_list")
         """
+        #LET:
+        if self.L[0] == INTBASE.LET_DEF:
+            locVarList = []
+            for v in self.L[1]:
+                if len(v) != 3:
+                    self.BASE.error(ErrorType.SYNTAX_ERROR_ERROR,description="Wrong Syntax for local variables")
+                type,name,initVal = v
+                if type not in self.BASE.get_allTypeNames():
+                     self.BASE.error(ErrorType.TYPE_ERROR,description=f"Invalid local variable type.")
+
+                if initVal == INTBASE.NULL_DEF: # Deal with object scenario
+                    if type in [INTBASE.INT_DEF,INTBASE.STRING_DEF,INTBASE.BOOL_DEF]:
+                        self.BASE.error(ErrorType.TYPE_ERROR,description="Null can't be assigned to a primitive type local variable")
+                    for c in self.BASE.get_BclassList():
+                        if type == c.get_single_name():
+                            valObj = Bnull(className=c.get_name())
+                            break
+                else:  # Primitive scenario
+                    valObj = Bconstant(self.BASE,initVal) 
+                    # check to do initial type checking:
+                    if valObj.get_type() != type:
+                        self.BASE.error(ErrorType.TYPE_ERROR,description="Local variable initial value is of wrong type")
+                newLocVar = BVariable(self.BASE, varName=name, initialValue=valObj,varType=type)
+                locVarList.append(newLocVar)
+            for s in self.L[2:]:
+                newStatement = Bstatement(self.BASE, self.OBJ, s)
+                result = newStatement.process(var_list=locVarList+var_list)
+                if result is not None:
+                    return result
+
         #BEGIN:
-        if self.L[0] == INTBASE.BEGIN_DEF:
+        elif self.L[0] == INTBASE.BEGIN_DEF:
             for s in self.L[1:]:
                 newStatement = Bstatement(self.BASE,self.OBJ,s)
                 result = newStatement.process(var_list)
@@ -106,7 +137,8 @@ class Bstatement:
                 self.BASE.error(ErrorType.SYNTAX_ERROR,description="Wrong set-statement format")
             exp = self.L[2]
             if isinstance(exp,list) and exp[0] == INTBASE.CALL_DEF:
-                expVal = Bstatement(self.BASE,self.OBJ,exp).process(var_list)
+                #expVal = Bstatement(self.BASE,self.OBJ,exp).process(var_list)
+                expVal = Bexp(self.BASE,self.OBJ,varList=var_list,initialList=exp).evaluate()
             else:
                 expVal = Bexp(self.BASE,self.OBJ,var_list,initialList=exp).evaluate() # The value to assign
 
@@ -124,10 +156,13 @@ class Bstatement:
                     if expVal.get_type() is None:
                         if theVar.get_type() in [INTBASE.INT_DEF,INTBASE.STRING_DEF,INTBASE.BOOL_DEF]:
                             self.BASE.error(ErrorType.TYPE_ERROR,description="Primitive types can't be set to null")
-                        expVal.change_type(className=theVar.get_type())
+                        for c in self.BASE.get_BclassList():
+                            if theVar.get_type() == c.get_single_name():
+                                expVal.change_type(className=c.get_name())
+                                break                            
                         theVar.change_value(newValue=expVal)
                     else:
-                        if expVal.get_type() == theVar.get_type():
+                        if  theVar.get_type() in expVal.get_type():
                             theVar.change_value(newValue=expVal)
                         else:
                             self.BASE.error(ErrorType.TYPE_ERROR,description="The value type compatible with the variable's type.")   
@@ -152,7 +187,7 @@ class Bstatement:
                 if inputVal.get_type() == theVar.get_type():
                     theVar.change_value(newValue=inputVal)
                 else:
-                    self.BASE.error(ErrorType.SYNTAX_ERROR,description="The input type is incompatible with the variable type")
+                    self.BASE.error(ErrorType.SYNTAX_ERROR,description="The input type is incompatible with the variable type.")
             else:
                 self.BASE.error(ErrorType.NAME_ERROR,description="Can't find the parameter or field to set.")
         
@@ -168,8 +203,15 @@ class Bstatement:
                     callObj = Bexp(self.BASE,self.OBJ,varList=var_list,initialList=objName).evaluate()
                 elif objName[0] == INTBASE.NEW_DEF:
                     callObj = Bexp(self.BASE,self.OBJ,varList=var_list,initialList=objName).evaluate()
-            elif objName == "me":
-                callObj = self.OBJ
+            elif objName == INTBASE.ME_DEF:
+                callObj = self.OBJ.get_the_most_derived()
+            
+            elif objName == INTBASE.SUPER_DEF:
+                if self.OBJ.superObj is not None:
+                    callObj = self.OBJ.superObj
+                else:
+                    self.BASE.error(ErrorType.NAME_ERROR,description="Can't find such a method from the super object.")
+            
             else:
                 callObj = next((v for v in var_list if v.name() == objName), None)
                 if callObj is None:
@@ -186,7 +228,7 @@ class Bstatement:
             methodName = self.L[2]
             # print(f"Now it's object {callObj.classNAME}, with a parameter of len {len(param_list)}")
             result = callObj.run_method(methodName,param_list)
-            return result
+            return None
         
         #RETURN
         elif self.L[0] == INTBASE.RETURN_DEF:
@@ -197,7 +239,8 @@ class Bstatement:
                 if isinstance(exp,list) and exp[0] == INTBASE.CALL_DEF:
                     expVal = Bstatement(self.BASE,self.OBJ,exp).process(var_list)
                 else:
-                    expVal = Bexp(self.BASE,self.OBJ,var_list,initialList=exp).evaluate() # The value to return 
+                    expVal = Bexp(self.BASE,self.OBJ,var_list,initialList=exp).evaluate() # The value to return
+                    #print(expVal) 
                 return expVal
             else:
                 self.BASE.error(ErrorType.SYNTAX_ERROR,description="Wrong return-statement format")

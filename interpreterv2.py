@@ -14,7 +14,7 @@ class Interpreter(InterpreterBase):
     def get_allTypeNames(self):
         return self.allTypeNames
     
-    def BclassList(self):
+    def get_BclassList(self):
         return self.BclassList
 
     def run(self,program):
@@ -23,17 +23,24 @@ class Interpreter(InterpreterBase):
         for c in parsed_program:
             self.BclassList.append(Bclass(c,self))
         # Check dup in class definitions
-        className_list = [c.get_name() for c in self.BclassList]
+        className_list = [c.get_single_name() for c in self.BclassList]
         if len(className_list) != len(set(className_list)):
             self.error(ErrorType.TYPE_ERROR, description="Duplicate class definitions!")
-        mainClass = next((c for c in self.BclassList if c.get_name() == INTBASE.MAIN_CLASS_DEF), (None,None))
+        
+        self.allTypeNames += className_list
+        
+        mainClass = next((c for c in self.BclassList if c.get_single_name() == INTBASE.MAIN_CLASS_DEF), (None,None))
         if mainClass == (None,None):
             self.error(ErrorType.FAULT_ERROR, description="No main class!")
         mainObj = mainClass.instantiate_object()
         mainObj.run_method("main", [])
 
     def test(self,stuff):
-        mainClass = Bclass(stuff,self)
+        mainClass = Bclass(stuff[0],self)
+       # personClass = Bclass(stuff[1],self)
+        self.BclassList.append(mainClass)
+       # self.BclassList.append(personClass)
+        self.allTypeNames += [i.get_name() for i in self.BclassList]
         mainObj = mainClass.instantiate_object()
         mainObj.run_method("main", [])
 
@@ -81,17 +88,19 @@ def main():
     # ') # end of class']
     # program_source = ""
 
-    file_path = "./codeExample3.b++"
+    file_path = "/Users/jayzee_robin/Desktop/CS131/P2/Spring23-CS131-Project-Starter/codeExample2.b++"
     program_source = read_file(file_path=file_path)
+    I = Interpreter()
+    I.run(program=program_source)
     # this is how you use our BParser class to parse a valid
     # Brewin program into python list format.
-    result, parsed_program = BParser.parse(program_source)
-    if result == True:    
-        I = Interpreter()
-        I.test(parsed_program[0])
-        # print_line_nums(parsed_program[0])
-        # print(parsed_program)
-    else:
-        print('Parsing failed. There must have been a mismatched parenthesis.')
+    # result, parsed_program = BParser.parse(program_source)
+    # if result == True:    
+    #     I = Interpreter()
+    #     I.test(parsed_program)
+    #     # print_line_nums(parsed_program[0])
+    #     # print(parsed_program)
+    # else:
+    #     print('Parsing failed. There must have been a mismatched parenthesis.')
 
 main()

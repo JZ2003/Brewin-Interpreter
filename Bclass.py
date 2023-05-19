@@ -11,16 +11,28 @@ class Bclass:
         self.fields: (list) list of field info
         """
         self.BASE = BASE
+        self.methods = []
+        self.fields = []
+        self.super = None # The father (Bclass)
         if code[0] != INTBASE.CLASS_DEF:
             self.BASE.error(ErrorType.SYNTAX_ERROR,description="Missing 'class' keyword")
-        if isinstance(code[1], str): # NOTE: Probably gonna need to use StringWithLineNumber
-                                     # SOLVE: use isinstance() will help to check subclass as well
+        if isinstance(code[1], str):
             self.name = code[1]
         else:
             self.BASE.error(ErrorType.SYNTAX_ERROR,description="Missing name for the class")
-        self.methods = []
-        self.fields = []
-        self.__get_methods_and_fields(code[2:])
+        if isinstance(code[2], str) and code[2] == INTBASE.INHERITS_DEF:
+            #TODO: Set super
+            superName = code[3]
+            superClass = next((c for c in self.BASE.get_BclassList() if c.get_single_name() == superName), None)
+            if superClass is not None:
+                self.super = superClass
+            else:
+                self.BASE.error(ErrorType.TYPE_ERROR,description="Can't find the base class")
+            self.__get_methods_and_fields(code[4:])
+        elif isinstance(code[2], list):
+            self.__get_methods_and_fields(code[2:])
+        else:
+            self.BASE.error(ErrorType.SYNTAX_ERROR,description="Wrong class definition syntax")
         
         # Check if there is at least one method in the Bclass definition
         if(len(self.methods) < 1):
@@ -43,11 +55,25 @@ class Bclass:
                 self.fields.append(x)
             else:
                 self.BASE.error(ErrorType.SYNTAX_ERROR,description="Invalid syntax for class definition.")
-    def get_name(self):
+    
+    def get_single_name(self):
+        """
+        Return: (str) this class's name
+        """
         return self.name
+    
+    def get_name(self):
+        """
+        Return: (list) a list that consists of this class's name and
+                all its superclasses' names.
+        """
+        name = [self.name]
+        if self.super is not None:
+            name += self.super.get_name()
+        return name
 
-    def instantiate_object(self):
-        newClassObject = Bobject(self.BASE,self.name,self.fields,self.methods)
+    def instantiate_object(self, subObject:Bobject=None):
+        newClassObject = Bobject(self.BASE,self.get_name(),self.fields,self.methods,self.super,sub=subObject)
         return newClassObject
 
     def __str__(self):
