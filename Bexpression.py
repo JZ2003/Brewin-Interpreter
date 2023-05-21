@@ -85,16 +85,23 @@ class Bexp:
 
     def eval3(self,s1,e1,e2):
         #CASE1: integer arithmetic or string concatenation
-        op = isArithmetic(s1)
         e1Val = Bexp(self.BASE,self.OBJ,varList=self.varList,initialList=e1).evaluate()
         e2Val = Bexp(self.BASE,self.OBJ,varList=self.varList,initialList=e2).evaluate()
-        try:
-            if op is not None:
-                if type(e1Val) is not type(e2Val):
-                    self.BASE.error(ErrorType.TYPE_ERROR,description="The two operands are not compatible.")
+        op = isPlus(s1)
+        if op is not None:
+            if type(e1Val) is str and type(e2Val) is str:
                 return op(e1Val,e2Val)
-        except TypeError:
-            self.BASE.error(ErrorType.TYPE_ERROR,description="The operations are not compatible with the operands.")
+            elif type(e1Val) is int and type(e2Val) is int:
+                return op(e1Val,e2Val)
+            else:
+                self.BASE.error(ErrorType.TYPE_ERROR,description="The operations are not compatible with the operands.")
+
+        op = isArithmetic(s1)
+        if op is not None:
+            if type(e1Val) is int and type(e2Val) is int:
+                return op(e1Val,e2Val)
+            else:
+                self.BASE.error(ErrorType.TYPE_ERROR,description="The operations are not compatible with the operands.")
         
         #CASE2: integer or string comparison, not including == or !=
         comp = isComparison(s1)
@@ -110,7 +117,7 @@ class Bexp:
         #CASE3: == and !=, integer, string, boolean 
         eqneq = isEqNotEq(s1)
         if eqneq is not None:
-            if isinstance(e1Val,int) and isinstance(e2Val,int):
+            if type(e1Val) is int and type(e2Val) is int:
                 return eqneq(e1Val,e2Val)
             elif isinstance(e1Val, bool) and isinstance(e2Val, bool):
                  return eqneq(e1Val,e2Val)
@@ -184,10 +191,14 @@ class Bexp:
         else:
             return result
 
-def isArithmetic(s):
+def isPlus(s):
     if s == "+":
-        return lambda x, y: x + y 
-    elif s == "-":
+        return lambda x,y: x + y
+    else:
+        return None
+
+def isArithmetic(s):
+    if s == "-":
         return lambda x, y: x - y
     elif s == "*":
         return lambda x, y: x * y

@@ -90,8 +90,8 @@ class Bmethod:
                 self.BASE.error(ErrorType.TYPE_ERROR,description="The value type is not compatible with the method return type.")
         else: #It's Bobject or Bnull
             if result.get_type() is None: # Generic null case
-                if self.methodType in [INTBASE.INT_DEF,INTBASE.STRING_DEF,INTBASE.BOOL_DEF]:
-                    self.BASE.error(ErrorType.TYPE_ERROR,description="Null can't be returned as a primitive type")
+                if self.methodType in [INTBASE.INT_DEF,INTBASE.STRING_DEF,INTBASE.BOOL_DEF] or self.methodType is None:
+                    self.BASE.error(ErrorType.TYPE_ERROR,description="Null can't be returned as a primitive type or in a void func.")
                 for c in self.BASE.get_BclassList():
                     if self.methodType == c.get_single_name():
                         result.change_type(className=c.get_name())
