@@ -15,10 +15,15 @@ class Bfield:
     
     def __parse_initial_value(self,initialValue):
         if initialValue == INTBASE.NULL_DEF: # Deal with object scenario
-            for c in self.BASE.get_BclassList():
-                if self.fieldType == c.get_single_name():
-                    self.value = Bnull(className=c.get_name())
-                    break            
+            theClass = next((c for c in self.BASE.get_BclassList() if c.get_single_name() == self.fieldType), None)
+            if theClass is not None:
+                self.value = Bnull(className=theClass.get_name())
+            else:
+                self.BASE.error(ErrorType.TYPE_ERROR,description="There is no such class type!")
+            # for c in self.BASE.get_BclassList():
+            #     if self.fieldType == c.get_single_name():
+            #         self.value = Bnull(className=c.get_name())
+            #         break            
            # self.value = Bnull(className=self.fieldType)
         else:  # Primitive scenario
             self.value = Bconstant(self.BASE,initialValue) 
