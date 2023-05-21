@@ -241,7 +241,7 @@ class Bstatement:
             elif len(self.L) == 2:
                 exp = self.L[1]
                 if isinstance(exp,list) and exp[0] == INTBASE.CALL_DEF:
-                    expVal = Bstatement(self.BASE,self.OBJ,exp).process(var_list)
+                    expVal = Bexp(self.BASE,self.OBJ,var_list,initialList=exp).evaluate()
                 elif exp == INTBASE.ME_DEF:
                     return self.OBJ
                 else:
