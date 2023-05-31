@@ -50,7 +50,7 @@ class Bobject:
     def __add_field(self,fields):
         for f in fields: 
             # Check the format of the field definitions
-            if len(f) != 4 or len(f) != 3:
+            if len(f) != 4 and len(f) != 3:
                 self.BASE.error(ErrorType.SYNTAX_ERROR,description="Wrong format for field in an object")
             if not isinstance(f[1], str):
                  self.BASE.error(ErrorType.SYNTAX_ERROR,description="Wrong format for field type")
