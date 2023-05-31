@@ -50,17 +50,18 @@ class Bobject:
     def __add_field(self,fields):
         for f in fields: 
             # Check the format of the field definitions
-            if len(f) != 4:
+            if len(f) != 4 or len(f) != 3:
                 self.BASE.error(ErrorType.SYNTAX_ERROR,description="Wrong format for field in an object")
-            if not isinstance(f[2], str):
-                self.BASE.error(ErrorType.SYNTAX_ERROR,description="Wrong format for field name")
-            if not isinstance(f[3], str):
-                self.BASE.error(ErrorType.SYNTAX_ERROR,description="Wrong format for field initial value")
             if not isinstance(f[1], str):
                  self.BASE.error(ErrorType.SYNTAX_ERROR,description="Wrong format for field type")
-            
-            # f has the form: ["field", "<fieldType>", "<fieldName>", "<initialValue"]
-            newFieldObject = Bfield(self.BASE,fieldName=f[2],initialValue=f[3],fieldType=f[1])
+            if not isinstance(f[2], str):
+                self.BASE.error(ErrorType.SYNTAX_ERROR,description="Wrong format for field name")
+            if len(f) == 4:
+                if not isinstance(f[3], str):
+                    self.BASE.error(ErrorType.SYNTAX_ERROR,description="Wrong format for field initial value")
+                newFieldObject = Bfield(self.BASE,fieldName=f[2],initialValue=f[3],fieldType=f[1])
+            else: # Len(f) == 3
+                newFieldObject = Bfield(self.BASE,fieldName=f[2],initialValue=None,fieldType=f[1])
             self.fields.append(newFieldObject)
     
     def get_the_most_derived(self):

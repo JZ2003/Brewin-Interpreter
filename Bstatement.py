@@ -29,13 +29,30 @@ class Bstatement:
         if self.L[0] == INTBASE.LET_DEF:
             locVarList = []
             for v in self.L[1]:
-                if len(v) != 3:
+                if len(v) == 3:
+                    type,name,initVal = v
+                elif len(v) == 2:
+                    type,name = v
+                    initVal = None
+                else:
                     self.BASE.error(ErrorType.SYNTAX_ERROR_ERROR,description="Wrong Syntax for local variables")
-                type,name,initVal = v
+                
                 if type not in self.BASE.get_allTypeNames():
                      self.BASE.error(ErrorType.TYPE_ERROR,description=f"Invalid local variable type.")
-
-                if initVal == INTBASE.NULL_DEF: # Deal with object scenario
+                
+                if initVal is None:
+                    if type == INTBASE.INT_DEF:
+                        valObj = Bconstant(self.BASE, "0")
+                    elif type == INTBASE.STRING_DEF:
+                        valObj = Bconstant(self.BASE, "\"\"")
+                    elif type == INTBASE.BOOL_DEF:
+                        valObj = Bconstant(self.BASE, "false")
+                    else:
+                        for c in self.BASE.get_BclassList():
+                            if type == c.get_single_name():
+                                valObj = Bnull(className=c.get_name())
+                                break
+                elif initVal == INTBASE.NULL_DEF: # Deal with object scenario
                     if type in [INTBASE.INT_DEF,INTBASE.STRING_DEF,INTBASE.BOOL_DEF]:
                         self.BASE.error(ErrorType.TYPE_ERROR,description="Null can't be assigned to a primitive type local variable")
                     for c in self.BASE.get_BclassList():
