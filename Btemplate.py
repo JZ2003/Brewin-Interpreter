@@ -24,8 +24,8 @@ class Btemp:
              self.BASE.error(ErrorType.SYNTAX_ERROR,description="Wrong syntax of parametrized types")
         self.fieldsAndMethods = code[3:]
 
-    def get_name(self):
-        return [self.name] #NOTE: This is undertermined yet whether we should return a list
+    # def get_name(self):
+    #     return [self.name] #NOTE: This is undertermined yet whether we should return a list
 
     def get_single_name(self):
         return self.name

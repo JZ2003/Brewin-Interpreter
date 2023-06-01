@@ -66,21 +66,6 @@ class Bstatement:
                                 valObj = Bnull(className=type)
                             else:
                                 self.BASE.error(ErrorType.TYPE_ERROR,description=f"Invalid local variable type.")
-                        
-                # elif initVal == INTBASE.NULL_DEF: # Deal with object scenario
-                #     if type in [INTBASE.INT_DEF,INTBASE.STRING_DEF,INTBASE.BOOL_DEF]:
-                #         self.BASE.error(ErrorType.TYPE_ERROR,description="Null can't be assigned to a primitive type local variable")
-                #     if INTBASE.TYPE_CONCAT_CHAR not in type:
-                #         for c in self.BASE.get_BclassList():
-                #             if type == c.get_single_name():
-                #                 valObj = Bnull(className=c.get_name())
-                #                 break
-                #     else:
-                #         plainTempType = type.split(INTBASE.TYPE_CONCAT_CHAR)[0]
-                #         for t in self.BASE.get_BtempList():
-                #             if plainTempType == t.get_single_name():
-                #                 valObj = Bnull(className=type)
-                #                 break
                 else:  # Primitive scenario
                     valObj = Bconstant(self.BASE,initVal) 
                     # check to do initial type checking:
@@ -179,11 +164,12 @@ class Bstatement:
             if len(self.L) != 3:
                 self.BASE.error(ErrorType.SYNTAX_ERROR,description="Wrong set-statement format")
             exp = self.L[2]
-            if isinstance(exp,list) and exp[0] == INTBASE.CALL_DEF:
-                #expVal = Bstatement(self.BASE,self.OBJ,exp).process(var_list)
-                expVal = Bexp(self.BASE,self.OBJ,varList=var_list,initialList=exp).evaluate()
-            else:
-                expVal = Bexp(self.BASE,self.OBJ,var_list,initialList=exp).evaluate() # The value to assign
+            expVal = Bexp(self.BASE,self.OBJ,varList=var_list,initialList=exp).evaluate()
+            # if isinstance(exp,list) and exp[0] == INTBASE.CALL_DEF:
+            #     #expVal = Bstatement(self.BASE,self.OBJ,exp).process(var_list)
+            #     expVal = Bexp(self.BASE,self.OBJ,varList=var_list,initialList=exp).evaluate()
+            # else:
+            #     expVal = Bexp(self.BASE,self.OBJ,var_list,initialList=exp).evaluate() # The value to assign
 
             toChange = self.L[1]
 
@@ -253,10 +239,11 @@ class Bstatement:
 
             # print(f"The objName is {objName}")
             if isinstance(objName,list): #If it's call or new
-                if objName[0] == INTBASE.CALL_DEF:
-                    callObj = Bexp(self.BASE,self.OBJ,varList=var_list,initialList=objName).evaluate()
-                elif objName[0] == INTBASE.NEW_DEF:
-                    callObj = Bexp(self.BASE,self.OBJ,varList=var_list,initialList=objName).evaluate()
+                callObj = Bexp(self.BASE,self.OBJ,varList=var_list,initialList=objName).evaluate()
+                # if objName[0] == INTBASE.CALL_DEF:
+                #     callObj = Bexp(self.BASE,self.OBJ,varList=var_list,initialList=objName).evaluate()
+                # elif objName[0] == INTBASE.NEW_DEF:
+                #     callObj = Bexp(self.BASE,self.OBJ,varList=var_list,initialList=objName).evaluate()
             elif objName == INTBASE.ME_DEF:
                 callObj = self.OBJ.get_the_most_derived()
             
@@ -290,16 +277,34 @@ class Bstatement:
                 return (None,None) #NOT NONE, but should immediately return.
             elif len(self.L) == 2:
                 exp = self.L[1]
-                if isinstance(exp,list) and exp[0] == INTBASE.CALL_DEF:
-                    expVal = Bexp(self.BASE,self.OBJ,var_list,initialList=exp).evaluate()
-                elif exp == INTBASE.ME_DEF:
+
+                if exp == INTBASE.ME_DEF:
                     return self.OBJ
                 else:
-                    expVal = Bexp(self.BASE,self.OBJ,var_list,initialList=exp).evaluate() # The value to return
-                    #print(expVal) 
-                return expVal
+                    expVal = Bexp(self.BASE,self.OBJ,var_list,initialList=exp).evaluate()
+                    return expVal
+                # if isinstance(exp,list) and exp[0] == INTBASE.CALL_DEF:
+                #     expVal = Bexp(self.BASE,self.OBJ,var_list,initialList=exp).evaluate()
+                # elif exp == INTBASE.ME_DEF:
+                #     return self.OBJ
+                # else:
+                #     expVal = Bexp(self.BASE,self.OBJ,var_list,initialList=exp).evaluate() # The value to return
+                #     #print(expVal) 
+                # return expVal
             else:
                 self.BASE.error(ErrorType.SYNTAX_ERROR,description="Wrong return-statement format")
+
+        #Try
+        elif self.L[0] == INTBASE.TRY_DEF:
+            pass
+
+
+        elif self.L[0] == INTBASE.THROW_DEF:
+            if len(self.L) != 2: 
+                 self.BASE.error(ErrorType.SYNTAX_ERROR,description="Wrong throw-statement format")
+                 exp = self.L[1]
+
+
 
         else:
             raise RuntimeError
