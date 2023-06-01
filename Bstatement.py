@@ -56,7 +56,7 @@ class Bstatement:
                         if INTBASE.TYPE_CONCAT_CHAR not in type:
                             theClass = next((c for c in self.BASE.get_BclassList() if c.get_single_name() == type), None)
                             if theClass is not None:
-                                valObj = Bnull(className=c.get_name())
+                                valObj = Bnull(className=theClass.get_name())
                             else:
                                 self.BASE.error(ErrorType.TYPE_ERROR,description=f"Invalid local variable type.")
                         else:
