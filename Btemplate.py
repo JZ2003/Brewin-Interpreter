@@ -1,6 +1,7 @@
 from intbase import InterpreterBase as INTBASE
 from intbase import ErrorType
 from Bobject import Bobject
+import copy
 
 # list_keyWord = ["class","method","field","null","begin", "set", "new", "if", "while", "main", "call", "tclass",
 #                 "return", "inputs", "inputi", "true", "false","print",""]
@@ -48,13 +49,14 @@ class Btemp:
         dict_types = {}
         for pt in zip(list_paramTypes,self.param_type):
             dict_types[pt[1]] = pt[0]
+
+        temp_fieldsAndMethods = copy.deepcopy(self.fieldsAndMethods)
         for param, formal in dict_types.items():
-            theList = self.fieldsAndMethods
+            theList = temp_fieldsAndMethods
             self.__type_substitute(theList, param, formal)
-        
         list_fields = []
         list_methods = []
-        for x in self.fieldsAndMethods:
+        for x in temp_fieldsAndMethods:
             if not isinstance(x, list):
                 self.BASE.error(ErrorType.SYNTAX_ERROR,description="Wrong format of template method or field")
             if x[0] == INTBASE.FIELD_DEF:
