@@ -19,7 +19,7 @@ class Bfield:
         self.__parse_initial_value(initialValue)
     
     def __parse_initial_value(self,initialValue):
-        if initialValue is None:
+        if initialValue is None or initialValue == INTBASE.NULL_DEF:
             if self.fieldType == INTBASE.INT_DEF:
                 self.value = Bconstant(self.BASE,"0")
             elif self.fieldType == INTBASE.BOOL_DEF:
