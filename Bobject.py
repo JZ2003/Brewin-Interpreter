@@ -111,10 +111,13 @@ class Bobject:
             else:
                 if p.get_type() is None: # If the value is a generic null
                     if mp[0] not in [INTBASE.INT_DEF,INTBASE.STRING_DEF,INTBASE.BOOL_DEF]:
-                        for c in self.BASE.get_BclassList():
-                            if mp[0] == c.get_single_name():
-                                p.change_type(className=c.get_name())                         
-                                break
+                        if not INTBASE.TYPE_CONCAT_CHAR in mp[0]:
+                            for c in self.BASE.get_BclassList():
+                                if mp[0] == c.get_single_name():
+                                    p.change_type(className=c.get_name())                         
+                                    break
+                        else:
+                            p.change_type(className=mp[0])
                         var_list.append(BVariable(self.BASE, varName=mp[1], initialValue=p, varType=mp[0]))
                     else:
                         if self.superObj is not None:
@@ -123,7 +126,9 @@ class Bobject:
                         else:
                             self.BASE.error(ErrorType.NAME_ERROR,description="Calling an undefined method.")
                 else: # If it's a non-generic null or an object
-                    if mp[0] in p.get_type(): #TODO: Check subclasses #SEEMINGLY DONE
+                    if isinstance(p.get_type(), list) and mp[0] in p.get_type(): #TODO: Check subclasses #SEEMINGLY DONE
+                        var_list.append(BVariable(self.BASE, varName=mp[1], initialValue=p, varType=mp[0]))
+                    elif isinstance(p.get_type(), str) and mp[0] == p.get_type():
                         var_list.append(BVariable(self.BASE, varName=mp[1], initialValue=p, varType=mp[0]))
                     else:
                         if self.superObj is not None:
@@ -134,7 +139,6 @@ class Bobject:
 
         ## Add all fields to the var_list
         var_list += self.fields
-        #print("log1")
         result = theMethod.execute_statement(var_list)
         return result
     

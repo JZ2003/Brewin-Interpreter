@@ -75,11 +75,18 @@ class Bexp:
             else:
                 self.BASE.error(ErrorType.TYPE_ERROR,description="The operations are not compatible with the operands.")
         elif s1 == INTBASE.NEW_DEF:
-            BclassDefs = self.BASE.get_BclassList()
-            for c in BclassDefs:
-                if c.get_single_name() == e1:
-                    return c.instantiate_object()
-            self.BASE.error(ErrorType.TYPE_ERROR,description="Can't find the class definition.")
+            if not INTBASE.TYPE_CONCAT_CHAR in e1:
+                BclassDefs = self.BASE.get_BclassList()
+                for c in BclassDefs:
+                    if c.get_single_name() == e1:
+                        return c.instantiate_object()
+                self.BASE.error(ErrorType.TYPE_ERROR,description="Can't find the class definition.")
+            else: # A template type
+                BtempDefs = self.BASE.get_BtempList()
+                plainTempType = e1.split(INTBASE.TYPE_CONCAT_CHAR)[0]
+                for t in BtempDefs:
+                    if t.get_single_name() == plainTempType:
+                        return t.instantiate_object(initString=e1)
         else:
             self.BASE.error(ErrorType.SYNTAX_ERROR,description="Wrong unary expression")
 

@@ -27,7 +27,7 @@ class Btemp:
         return [self.name] #NOTE: This is undertermined yet whether we should return a list
 
     def get_single_name(self):
-        self.name
+        return self.name
 
     def __type_substitute(self, list, p, f):
         for i in range(len(list)):
@@ -50,8 +50,8 @@ class Btemp:
             dict_types[pt[1]] = pt[0]
         print(dict_types)
         for param, formal in dict_types.items():
-            list = self.fieldsAndMethods
-            self.__type_substitute(list, param, formal)
+            theList = self.fieldsAndMethods
+            self.__type_substitute(theList, param, formal)
         
         list_fields = []
         list_methods = []

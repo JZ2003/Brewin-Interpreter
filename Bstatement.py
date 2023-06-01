@@ -37,10 +37,15 @@ class Bstatement:
                 else:
                     self.BASE.error(ErrorType.SYNTAX_ERROR_ERROR,description="Wrong Syntax for local variables")
                 
-                if type not in self.BASE.get_allTypeNames():
-                     self.BASE.error(ErrorType.TYPE_ERROR,description=f"Invalid local variable type.")
+                #NOTE: Need to change to include template case
+                if INTBASE.TYPE_CONCAT_CHAR not in type:
+                    if type not in self.BASE.get_allTypeNames():
+                        self.BASE.error(ErrorType.TYPE_ERROR,description=f"Invalid local variable type.")
+                else:
+                    if type.split(INTBASE.TYPE_CONCAT_CHAR)[0] not in self.BASE.get_allTypeNames():
+                        self.BASE.error(ErrorType.TYPE_ERROR,description=f"Invalid local variable type.")
                 
-                if initVal is None:
+                if initVal is None or initVal == INTBASE.NULL_DEF:
                     if type == INTBASE.INT_DEF:
                         valObj = Bconstant(self.BASE, "0")
                     elif type == INTBASE.STRING_DEF:
@@ -48,17 +53,34 @@ class Bstatement:
                     elif type == INTBASE.BOOL_DEF:
                         valObj = Bconstant(self.BASE, "false")
                     else:
-                        for c in self.BASE.get_BclassList():
-                            if type == c.get_single_name():
+                        if INTBASE.TYPE_CONCAT_CHAR not in type:
+                            theClass = next((c for c in self.BASE.get_BclassList() if c.get_single_name() == type), None)
+                            if theClass is not None:
                                 valObj = Bnull(className=c.get_name())
-                                break
-                elif initVal == INTBASE.NULL_DEF: # Deal with object scenario
-                    if type in [INTBASE.INT_DEF,INTBASE.STRING_DEF,INTBASE.BOOL_DEF]:
-                        self.BASE.error(ErrorType.TYPE_ERROR,description="Null can't be assigned to a primitive type local variable")
-                    for c in self.BASE.get_BclassList():
-                        if type == c.get_single_name():
-                            valObj = Bnull(className=c.get_name())
-                            break
+                            else:
+                                self.BASE.error(ErrorType.TYPE_ERROR,description=f"Invalid local variable type.")
+                        else:
+                            plainTempType = type.split(INTBASE.TYPE_CONCAT_CHAR)[0]
+                            theTemplate = next((t for t in self.BASE.get_BtempList() if t.get_single_name() == plainTempType), None)
+                            if theTemplate is not None:
+                                valObj = Bnull(className=type)
+                            else:
+                                self.BASE.error(ErrorType.TYPE_ERROR,description=f"Invalid local variable type.")
+                        
+                # elif initVal == INTBASE.NULL_DEF: # Deal with object scenario
+                #     if type in [INTBASE.INT_DEF,INTBASE.STRING_DEF,INTBASE.BOOL_DEF]:
+                #         self.BASE.error(ErrorType.TYPE_ERROR,description="Null can't be assigned to a primitive type local variable")
+                #     if INTBASE.TYPE_CONCAT_CHAR not in type:
+                #         for c in self.BASE.get_BclassList():
+                #             if type == c.get_single_name():
+                #                 valObj = Bnull(className=c.get_name())
+                #                 break
+                #     else:
+                #         plainTempType = type.split(INTBASE.TYPE_CONCAT_CHAR)[0]
+                #         for t in self.BASE.get_BtempList():
+                #             if plainTempType == t.get_single_name():
+                #                 valObj = Bnull(className=type)
+                #                 break
                 else:  # Primitive scenario
                     valObj = Bconstant(self.BASE,initVal) 
                     # check to do initial type checking:
@@ -177,16 +199,27 @@ class Bstatement:
                     if expVal.get_type() is None:
                         if theVar.get_type() in [INTBASE.INT_DEF,INTBASE.STRING_DEF,INTBASE.BOOL_DEF]:
                             self.BASE.error(ErrorType.TYPE_ERROR,description="Primitive types can't be set to null")
-                        for c in self.BASE.get_BclassList():
-                            if theVar.get_type() == c.get_single_name():
-                                expVal.change_type(className=c.get_name())
-                                break                            
+                        if '@' not in theVar.get_type():
+                            for c in self.BASE.get_BclassList():
+                                if theVar.get_type() == c.get_single_name():
+                                    expVal.change_type(className=c.get_name())
+                                    break
+                        else:
+                            for t in self.BASE.getBtempList():
+                                if theVar.get_type().split('@')[0] == t.get_single_name():
+                                    expVal.change_type(className=theVar.get_type())
                         theVar.change_value(newValue=expVal)
                     else:
-                        if  theVar.get_type() in expVal.get_type():
-                            theVar.change_value(newValue=expVal)
+                        if isinstance(expVal.get_type(),list):
+                            if theVar.get_type() in expVal.get_type():
+                                theVar.change_value(newValue=expVal)
+                            else:
+                                self.BASE.error(ErrorType.TYPE_ERROR,description="The value type incompatible with the variable's type.")   
                         else:
-                            self.BASE.error(ErrorType.TYPE_ERROR,description="The value type compatible with the variable's type.")   
+                             if theVar.get_type() == expVal.get_type():
+                                theVar.change_value(newValue=expVal)
+                             else:
+                                self.BASE.error(ErrorType.TYPE_ERROR,description="The value type incompatible with the variable's type.")
             else:
                 self.BASE.error(ErrorType.NAME_ERROR,description="Can't find the parameter or field to set.")
             

@@ -4,11 +4,13 @@ from Bexpression import Bexp
 from Bconstant import Bconstant
 from Bstatement import Bstatement
 from Bfield import Bfield
+from Btemplate import Btemp
 
 class Interpreter(InterpreterBase):
     def __init__(self, console_output=True, inp=None, trace_output=False):
         super().__init__(console_output, inp) # call InterpreterBase’s constructor
         self.BclassList = []
+        self.BtempList = []
         self.allTypeNames = [INTBASE.BOOL_DEF,INTBASE.INT_DEF,INTBASE.STRING_DEF] #TODO:Append all classNames later
     
     def get_allTypeNames(self):
@@ -16,18 +18,28 @@ class Interpreter(InterpreterBase):
     
     def get_BclassList(self):
         return self.BclassList
+    
+    def get_BtempList(self):
+        return self.BtempList
 
     def run(self,program):
         result, parsed_program = BParser.parse(program)
         # parsed_program = program
         for c in parsed_program:
-            self.BclassList.append(Bclass(c,self))
+            if c[0] == INTBASE.CLASS_DEF:
+                self.BclassList.append(Bclass(c,self))
+            elif c[0] == INTBASE.TEMPLATE_CLASS_DEF:
+                self.BtempList.append(Btemp(c,self))
+            else:
+                self.error(ErrorType.SYNTAX_ERROR, description="Neither a class or template? WTF is it?")
         # Check dup in class definitions
         className_list = [c.get_single_name() for c in self.BclassList]
-        if len(className_list) != len(set(className_list)):
-            self.error(ErrorType.TYPE_ERROR, description="Duplicate class definitions!")
-        
+        tempName_list = [t.get_single_name() for t in self.BtempList]
+        if len(className_list) != len(set(className_list)) or len(tempName_list) != len(set(tempName_list)):
+            self.error(ErrorType.TYPE_ERROR, description="Duplicate class or template definitions!")
+
         self.allTypeNames += className_list
+        self.allTypeNames += tempName_list #Also all the templates!
         
         mainClass = next((c for c in self.BclassList if c.get_single_name() == INTBASE.MAIN_CLASS_DEF), (None,None))
         if mainClass == (None,None):
@@ -36,13 +48,15 @@ class Interpreter(InterpreterBase):
         mainObj.run_method("main", [])
 
     def test(self,stuff):
-        mainClass = Bclass(stuff[0],self)
-       # personClass = Bclass(stuff[1],self)
-        self.BclassList.append(mainClass)
-       # self.BclassList.append(personClass)
-        self.allTypeNames += [i.get_name() for i in self.BclassList]
-        mainObj = mainClass.instantiate_object()
-        mainObj.run_method("main", [])
+    #     mainClass = Bclass(stuff[0],self)
+    #    # personClass = Bclass(stuff[1],self)
+    #     self.BclassList.append(mainClass)
+    #    # self.BclassList.append(personClass)
+    #     self.allTypeNames += [i.get_name() for i in self.BclassList]
+    #     mainObj = mainClass.instantiate_object()
+    #     mainObj.run_method("main", [])
+        temp1 = Btemp(stuff,self)
+        temp1.instantiate_object(["int","string"])
 
 
 
@@ -72,12 +86,12 @@ class Interpreter(InterpreterBase):
 #         lines = [line.strip() for line in lines]
 #         return lines
 
-# # def print_line_nums(parsed_program):
-# #     for item in parsed_program:
-# #         if type(item) is not list:
-# #             print(f'{item} was found on line {item.line_num}')
-# #         else:
-# #             print_line_nums(item)
+# # # def print_line_nums(parsed_program):
+# # #     for item in parsed_program:
+# # #         if type(item) is not list:
+# # #             print(f'{item} was found on line {item.line_num}')
+# # #         else:
+# # #             print_line_nums(item)
 
 
 # def main():
@@ -88,7 +102,7 @@ class Interpreter(InterpreterBase):
 #     # ') # end of class']
 #     # program_source = ""
 
-#     file_path = "/Users/jayzee_robin/Desktop/CS131/P2/Spring23-CS131-Project-Starter/codeExample2.b++"
+#     file_path = "./test_code2.B#"
 #     program_source = read_file(file_path=file_path)
 #     I = Interpreter()
 #     I.run(program=program_source)
@@ -97,7 +111,8 @@ class Interpreter(InterpreterBase):
 #     # result, parsed_program = BParser.parse(program_source)
 #     # if result == True:    
 #     #     I = Interpreter()
-#     #     I.test(parsed_program)
+#     #     # print(parsed_program)
+#     #     I.test(parsed_program[0])
 #     #     # print_line_nums(parsed_program[0])
 #     #     # print(parsed_program)
 #     # else:
