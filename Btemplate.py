@@ -48,7 +48,6 @@ class Btemp:
         dict_types = {}
         for pt in zip(list_paramTypes,self.param_type):
             dict_types[pt[1]] = pt[0]
-        print(dict_types)
         for param, formal in dict_types.items():
             theList = self.fieldsAndMethods
             self.__type_substitute(theList, param, formal)
