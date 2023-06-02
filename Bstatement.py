@@ -63,6 +63,8 @@ class Bstatement:
                             plainTempType = type.split(INTBASE.TYPE_CONCAT_CHAR)[0]
                             theTemplate = next((t for t in self.BASE.get_BtempList() if t.get_single_name() == plainTempType), None)
                             if theTemplate is not None:
+                                if len(theTemplate.get_param_type()) != len(type.split(INTBASE.TYPE_CONCAT_CHAR)[1:]):
+                                    self.BASE.error(ErrorType.TYPE_ERROR,description=f"Wrong number of parametrized types")
                                 valObj = Bnull(className=type)
                             else:
                                 self.BASE.error(ErrorType.TYPE_ERROR,description=f"Invalid local variable type.")

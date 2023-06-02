@@ -39,6 +39,10 @@ class Bmethod:
         elif INTBASE.TYPE_CONCAT_CHAR not in l[1] and l[1] in self.BASE.get_allTypeNames():
             self.methodType = l[1] # If it's non-void
         elif l[1].split(INTBASE.TYPE_CONCAT_CHAR)[0] in self.BASE.get_allTypeNames():
+            plainTempType = l[1].split(INTBASE.TYPE_CONCAT_CHAR)[0]
+            theTemplate = next((t for t in self.BASE.get_BtempList() if t.get_single_name() == plainTempType), None)
+            if len(theTemplate.get_param_type()) != len(l[1].split(INTBASE.TYPE_CONCAT_CHAR)[1:]):
+                self.BASE.error(ErrorType.TYPE_ERROR,description=f"Wrong number of parametrized types")
             self.methodType = l[1]
         else:
             self.BASE.error(ErrorType.TYPE_ERROR,description=f"Invalid return type for the method {self.methodName}.")
@@ -53,6 +57,10 @@ class Bmethod:
                 if i[0].split(INTBASE.TYPE_CONCAT_CHAR)[0] not in self.BASE.get_allTypeNames():
                     self.BASE.error(ErrorType.TYPE_ERROR,description=f"Invalid param type for the method {self.methodName}.")
                 else:
+                    plainTempType = i[0].split(INTBASE.TYPE_CONCAT_CHAR)[0]
+                    theTemplate = next((t for t in self.BASE.get_BtempList() if t.get_single_name() == plainTempType), None)
+                    if len(theTemplate.get_param_type()) != len(i[0].split(INTBASE.TYPE_CONCAT_CHAR)[1:]):
+                        self.BASE.error(ErrorType.TYPE_ERROR,description=f"Wrong number of parametrized types")
                     self.parameters.append((i[0],i[1]))
         paramNameSet = set([i[1] for i in self.parameters])
         if len(paramNameSet) != len(self.parameters):

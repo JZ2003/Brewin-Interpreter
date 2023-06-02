@@ -27,6 +27,9 @@ class Btemp:
     # def get_name(self):
     #     return [self.name] #NOTE: This is undertermined yet whether we should return a list
 
+    def get_param_type(self):
+        return self.param_type
+
     def get_single_name(self):
         return self.name
 
