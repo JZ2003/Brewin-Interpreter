@@ -127,8 +127,8 @@ class Bstatement:
                     if result is not None:
                         return result
                     condition = Bexp(self.BASE,self.OBJ,var_list,self.L[1]).evaluate()
-                    if isinstance(toPrint,tuple) and toPrint[1] is not None:
-                        return toPrint                    
+                    if isinstance(condition,tuple) and condition[1] is not None:
+                        return condition                 
             else:
                 self.BASE.error(ErrorType.TYPE_ERROR,description="Use a non-boolean type as the while condition")
         #IF:
