@@ -72,7 +72,10 @@ class Bmethod:
         stm = Bstatement(self.BASE,self.OBJ,self.statement)
         result = stm.process(var_list = var_list)
 
-        if result is None or result == (None,None): #Return nothing
+        if isinstance(result,tuple) and result[1] is not None: #Throw an exception
+            return result
+
+        elif result is None or result == (None,None): #Return nothing
             # print(self.methodType)
             if self.methodType is None: #If it's void type
                 return None

@@ -96,6 +96,8 @@ class Bstatement:
             toPrint_str = "" # empty string
             for e in self.L[1:]:
                 toPrint = Bexp(self.BASE,self.OBJ,var_list,e).evaluate()
+                if isinstance(toPrint,tuple) and toPrint[1] is not None:
+                    return toPrint
                 if toPrint is None:
                     toPrint_str = toPrint_str + "None"
                 elif self.isObject(toPrint) and (not isinstance(toPrint, Bnull)):
@@ -116,6 +118,8 @@ class Bstatement:
         # WHILE:
         elif self.L[0] == INTBASE.WHILE_DEF:
             condition = Bexp(self.BASE,self.OBJ,var_list,self.L[1]).evaluate()
+            if isinstance(condition,tuple) and condition[1] is not None:
+                return condition           
             if isinstance(condition,bool):
                 while condition:
                     newStatement = Bstatement(self.BASE,self.OBJ,self.L[2])
@@ -123,6 +127,8 @@ class Bstatement:
                     if result is not None:
                         return result
                     condition = Bexp(self.BASE,self.OBJ,var_list,self.L[1]).evaluate()
+                    if isinstance(toPrint,tuple) and toPrint[1] is not None:
+                        return toPrint                    
             else:
                 self.BASE.error(ErrorType.TYPE_ERROR,description="Use a non-boolean type as the while condition")
         #IF:
@@ -130,6 +136,8 @@ class Bstatement:
             # If there is no else statement
             if len(self.L) == 3:
                 condition = Bexp(self.BASE,self.OBJ,var_list,self.L[1]).evaluate()
+                if isinstance(condition,tuple) and condition[1] is not None:
+                    return condition               
                 if isinstance(condition,bool):
                     if condition:
                         newStatement = Bstatement(self.BASE,self.OBJ,self.L[2])
@@ -143,6 +151,8 @@ class Bstatement:
             # If there is a else statement
             elif len(self.L) == 4:
                 condition = Bexp(self.BASE,self.OBJ,var_list,self.L[1]).evaluate()
+                if isinstance(condition,tuple) and condition[1] is not None:
+                    return condition                      
                 if isinstance(condition,bool):
                     if condition:
                         newStatement = Bstatement(self.BASE,self.OBJ,self.L[2])
@@ -165,12 +175,8 @@ class Bstatement:
                 self.BASE.error(ErrorType.SYNTAX_ERROR,description="Wrong set-statement format")
             exp = self.L[2]
             expVal = Bexp(self.BASE,self.OBJ,varList=var_list,initialList=exp).evaluate()
-            # if isinstance(exp,list) and exp[0] == INTBASE.CALL_DEF:
-            #     #expVal = Bstatement(self.BASE,self.OBJ,exp).process(var_list)
-            #     expVal = Bexp(self.BASE,self.OBJ,varList=var_list,initialList=exp).evaluate()
-            # else:
-            #     expVal = Bexp(self.BASE,self.OBJ,var_list,initialList=exp).evaluate() # The value to assign
-
+            if isinstance(expVal,tuple) and expVal[1] is not None:
+                return expVal      
             toChange = self.L[1]
 
             theVar = next((f for f in var_list if f.name() == toChange), None)
@@ -240,10 +246,9 @@ class Bstatement:
             # print(f"The objName is {objName}")
             if isinstance(objName,list): #If it's call or new
                 callObj = Bexp(self.BASE,self.OBJ,varList=var_list,initialList=objName).evaluate()
-                # if objName[0] == INTBASE.CALL_DEF:
-                #     callObj = Bexp(self.BASE,self.OBJ,varList=var_list,initialList=objName).evaluate()
-                # elif objName[0] == INTBASE.NEW_DEF:
-                #     callObj = Bexp(self.BASE,self.OBJ,varList=var_list,initialList=objName).evaluate()
+                if isinstance(callObj,tuple) and callObj[1] is not None:
+                    return callObj      
+
             elif objName == INTBASE.ME_DEF:
                 callObj = self.OBJ.get_the_most_derived()
             
@@ -265,11 +270,13 @@ class Bstatement:
             param_list = []
             for e in self.L[3:]:
                 exp = Bexp(self.BASE,self.OBJ,varList=var_list,initialList=e).evaluate()
+                if isinstance(exp,tuple) and exp[1] is not None:
+                    return exp      
                 param_list.append(exp)
             methodName = self.L[2]
             # print(f"Now it's object {callObj.classNAME}, with a parameter of len {len(param_list)}")
             result = callObj.run_method(methodName,param_list)
-            return None
+            return result
         
         #RETURN
         elif self.L[0] == INTBASE.RETURN_DEF:
@@ -282,27 +289,46 @@ class Bstatement:
                     return self.OBJ
                 else:
                     expVal = Bexp(self.BASE,self.OBJ,var_list,initialList=exp).evaluate()
+                    if isinstance(expVal,tuple) and expVal[1] is not None:
+                        return expVal                          
                     return expVal
-                # if isinstance(exp,list) and exp[0] == INTBASE.CALL_DEF:
-                #     expVal = Bexp(self.BASE,self.OBJ,var_list,initialList=exp).evaluate()
-                # elif exp == INTBASE.ME_DEF:
-                #     return self.OBJ
-                # else:
-                #     expVal = Bexp(self.BASE,self.OBJ,var_list,initialList=exp).evaluate() # The value to return
-                #     #print(expVal) 
-                # return expVal
             else:
                 self.BASE.error(ErrorType.SYNTAX_ERROR,description="Wrong return-statement format")
 
         #Try
         elif self.L[0] == INTBASE.TRY_DEF:
-            pass
+            if len(self.L) != 3:
+                self.BASE.error(ErrorType.SYNTAX_ERROR,description="Wrong try-statement format")
+            mainStm = Bstatement(BASE=self.BASE,OBJ=self.OBJ,initialList=self.L[1])
+            mainResult = mainStm.process(var_list=var_list)
+    
+            if mainResult is not None:
+                if isinstance(mainResult,tuple) and mainResult[1] is not None: # We catch a throw
+                    catchStm = Bstatement(BASE=self.BASE,OBJ=self.OBJ,initialList=self.L[2])
+                    # Add the exception variable
+                    excString = Bconstant(BASE=self.BASE,parseString=stringify(mainResult[1]))
+                    exception = BVariable(BASE=self.BASE,varName=INTBASE.EXCEPTION_VARIABLE_DEF,initialValue=excString,varType=excString.get_type())
+                    if exception.get_type() != INTBASE.STRING_DEF:
+                        self.BASE.error(ErrorType.TYPE_ERROR,description="Something shit busted!")
+                    catchResult = catchStm.process(var_list=[exception]+var_list)
+                    if catchResult is not None:
+                        return catchResult
+                else: # Just a normal return 
+                    return mainResult
+            
 
-
+        #Throw
         elif self.L[0] == INTBASE.THROW_DEF:
             if len(self.L) != 2: 
-                 self.BASE.error(ErrorType.SYNTAX_ERROR,description="Wrong throw-statement format")
-                 exp = self.L[1]
+                self.BASE.error(ErrorType.SYNTAX_ERROR,description="Wrong throw-statement format")
+            exp = self.L[1]
+            excVal = Bexp(self.BASE,self.OBJ,var_list,initialList=exp).evaluate() #TODO: CHECK THIS EVALUATIONNNNNNNNN
+            if isinstance(excVal,tuple) and excVal[1] is not None:
+                return excVal      
+            if not isinstance(excVal,str):
+                self.BASE.error(ErrorType.TYPE_ERROR,description="Exception can only be string type!")
+            return (None,excVal)
+            
 
 
 

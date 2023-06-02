@@ -70,6 +70,8 @@ class Bexp:
     def eval2(self,s1,e1):
         if s1 == "!":
             e1Val = Bexp(self.BASE,self.OBJ,varList=self.varList,initialList=e1).evaluate()
+            if isinstance(e1Val,tuple) and e1Val[1] is not None:
+                return e1Val                  
             if isinstance(e1Val,bool):
                 return not e1Val
             else:
@@ -93,7 +95,11 @@ class Bexp:
     def eval3(self,s1,e1,e2):
         #CASE1: integer arithmetic or string concatenation
         e1Val = Bexp(self.BASE,self.OBJ,varList=self.varList,initialList=e1).evaluate()
+        if isinstance(e1Val,tuple) and e1Val[1] is not None:
+            return e1Val          
         e2Val = Bexp(self.BASE,self.OBJ,varList=self.varList,initialList=e2).evaluate()
+        if isinstance(e2Val,tuple) and e2Val[1] is not None:
+            return e2Val          
         op = isPlus(s1)
         if op is not None:
             if type(e1Val) is str and type(e2Val) is str:
@@ -161,10 +167,14 @@ class Bexp:
             self.BASE.error(ErrorType.SYNTAX_ERROR,description="Wrong call-expression format")
         objName = self.L[1]
         if isinstance(objName,list): #If it's call or new
-            if objName[0] == INTBASE.CALL_DEF:
-                callObj = Bexp(self.BASE,self.OBJ,varList=self.varList,initialList=objName).evaluate()
-            elif objName[0] == INTBASE.NEW_DEF:
-                callObj = Bexp(self.BASE,self.OBJ,varList=self.varList,initialList=objName).evaluate()
+            callObj = Bexp(self.BASE,self.OBJ,varList=self.varList,initialList=objName).evaluate()
+            if isinstance(callObj,tuple) and callObj[1] is not None:
+                return callObj  
+
+            # if objName[0] == INTBASE.CALL_DEF:
+            #     callObj = Bexp(self.BASE,self.OBJ,varList=self.varList,initialList=objName).evaluate()
+            # elif objName[0] == INTBASE.NEW_DEF:
+            #     callObj = Bexp(self.BASE,self.OBJ,varList=self.varList,initialList=objName).evaluate()
         elif objName == INTBASE.ME_DEF:
             callObj = self.OBJ.get_the_most_derived()
         elif objName == INTBASE.SUPER_DEF:
@@ -185,18 +195,24 @@ class Bexp:
         param_list = []
         for e in self.L[3:]:
             exp = Bexp(self.BASE,self.OBJ,varList=self.varList,initialList=e).evaluate()
+            if isinstance(exp,tuple) and exp[1] is not None:
+                return exp              
             param_list.append(exp)
         methodName = self.L[2]
         result = callObj.run_method(methodName,param_list)
         # if result is None or result == Bexp.RETURNED:
         #     self.BASE.error(ErrorType.FAULT_ERROR,description="The call expression doensn't have a return value")
         # else:
-        if self.isObject(result):
-            return result
-        elif result == (None,None):
-            return None
-        else:
-            return result
+
+        return result
+
+
+        # if self.isObject(result):
+        #     return result
+        # elif result == (None,None):
+        #     return None
+        # else:
+        #     return result
 
 def isPlus(s):
     if s == "+":
