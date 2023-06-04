@@ -278,7 +278,10 @@ class Bstatement:
             methodName = self.L[2]
             # print(f"Now it's object {callObj.classNAME}, with a parameter of len {len(param_list)}")
             result = callObj.run_method(methodName,param_list)
-            return result
+            if isinstance(result,tuple) and result[1] is not None:
+                return result
+            else:
+                return None
         
         #RETURN
         elif self.L[0] == INTBASE.RETURN_DEF:
@@ -311,8 +314,9 @@ class Bstatement:
                     excString = Bconstant(BASE=self.BASE,parseString=stringify(mainResult[1]))
                     exception = BVariable(BASE=self.BASE,varName=INTBASE.EXCEPTION_VARIABLE_DEF,initialValue=excString,varType=excString.get_type())
                     if exception.get_type() != INTBASE.STRING_DEF:
-                        self.BASE.error(ErrorType.TYPE_ERROR,description="Something shit busted!")
+                        self.BASE.error(ErrorType.TYPE_ERROR,description="Something shitty busted!")
                     catchResult = catchStm.process(var_list=[exception]+var_list)
+                    # print("The catchResult is:",catchResult)
                     if catchResult is not None:
                         return catchResult
                 else: # Just a normal return 
